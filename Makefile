@@ -1,2 +1,2 @@
 all :
-	clang++-3.6 -pg -g main.cpp -std=gnu++11
+	g++ -g -O3 -march=native main.cpp -std=gnu++11
