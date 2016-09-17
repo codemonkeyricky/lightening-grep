@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <immintrin.h>
-//#include <intrin.h>
+#include <assert.h>
 
 using namespace std;
 
@@ -30,8 +30,11 @@ int kMod    = 909;
 int kBase   = 26;
 #endif
 
+static int count = 0;
+
 void vsearch(
     char    t[ 4096 ],
+    char    m[ 4096 ],
     int     shash,
     int     slen,
     int     p
@@ -75,8 +78,23 @@ void vsearch(
     for ( auto i = slen; i < mapSize / 4; i++ )
     {
         // if ( rollingHash == targetHash ) { }
+        int output[ 4 ];
+        auto result = _mm_cmpeq_epi32( thash, targetHash );
+        _mm_store_si128( reinterpret_cast< __m128i *>( output ), result );
+        m[ i - slen + 0 ] = ( ( char * ) output )[ 0 ];
+        m[ i - slen + 1 ] = ( ( char * ) output )[ 4 ];
+        m[ i - slen + 2 ] = ( ( char * ) output )[ 8 ];
+        m[ i - slen + 3 ] = ( ( char * ) output )[ 12 ];
 
-        // TODO:
+//        // TODO:
+//        if ( m[ i - slen + 0 ]
+//        || m[ i - slen + 1 ]
+//        || m[ i - slen + 2 ]
+//        || m[ i - slen + 3 ]
+//        )
+//        {
+//            count++;
+//        }
 
         int input[ 4 ] = { t[ i * 4 + 0 ], t[ i * 4 + 1 ], t[ i * 4 + 2 ], t[ i * 4 + 3 ] };
 
@@ -115,7 +133,7 @@ int main()
     int mapSize = 4096;
     int fd      = open( "big.txt", O_RDONLY );
     int size    = lseek( fd, 0, SEEK_END );
-    string s    = "woman";
+    string s    = "EBook";
 
     vector< Match > matches;
 
@@ -172,12 +190,14 @@ int main()
 #endif
 
         char thash_arr[ 4 ] = { 0 };
-        vsearch( remap, targetHash, s.size(), power );
+        char output[ mapSize ];
+        vsearch( remap, output, targetHash, s.size(), power );
 
         printf( "%c", thash_arr[ 2 ] );
     }
 
     cout << "Matches = " << matches.size() << endl;
+    cout << "Count = " << count << endl;
 
     return 0;
 }
