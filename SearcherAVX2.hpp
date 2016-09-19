@@ -11,4 +11,6 @@ public:
     uint32_t process( std::string & filename, std::string & pattern );
 
 private:
+    int kMod    = 0x800000;
+    int kBase   = 129;
 };
