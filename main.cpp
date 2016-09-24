@@ -11,19 +11,20 @@
 
 #include "SearcherCPU.hpp"
 #include "SearcherAVX2.hpp"
+#include "SearcherSSE.hpp"
 
 using namespace std;
 
 int main()
 {
-    SearcherCPU     cpuSearch;
+    SearcherSSE     sseSearch;
     SearcherAVX2    avx2Search;
 
     string file     = "big2.txt";
     string pattern  = "certificates";
 
 //    cpuSearch.process( file, pattern );
-    auto matches = avx2Search.process( file, pattern );
+    auto matches = sseSearch.process( file, pattern );
 
     cout << "Matches = " << matches << endl;
 //    cout << "Count = " << count << endl;
