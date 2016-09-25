@@ -21,7 +21,7 @@ int main()
     SearcherAVX2    avx2Search;
 
     string file     = "big2.txt";
-    string pattern  = "certificates";
+    string pattern  = "code.monkey.ricky";
 
 //    cpuSearch.process( file, pattern );
     auto matches = sseSearch.process( file, pattern );
