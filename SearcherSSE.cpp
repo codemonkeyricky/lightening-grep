@@ -88,33 +88,38 @@ uint32_t SearcherSSE::process(
             if ( resultMask )
             {
                 unsigned int m  = resultMask;
-                int mi          = ffs( m ) - 1;
-                auto r          = _mm256_cmpeq_epi8( octadword, sp1_256[ mi ] );
-                auto m2         = _mm256_movemask_epi8( r );
-                int c           = _mm_popcnt_u32( m2 );
-
-                int mreq =
-                    ( 32 - mi ) > pattern.size() ?
-                        pattern.size() : 32 - mi;
-
-                if ( c == mreq )
+                while ( m )
                 {
-                    if ( mreq == pattern.size() )
-                    {
-                        count++;
-                    }
-                    else
-                    {
-                        int remain = pattern.size() - ( 32 - mi );
+                    int mi          = ffs( m ) - 1;
+                    m              &= m-1;
 
-                        octadword  = _mm256_load_si256( ( const __m256i * ) ( mm + i + 32 ) );
-                        r          = _mm256_cmpeq_epi8( octadword, sp2_256[ mreq ] );
-                        m2         = _mm256_movemask_epi8( r );
-                        c          = _mm_popcnt_u32( m2 );
+                    auto r          = _mm256_cmpeq_epi8( octadword, sp1_256[ mi ] );
+                    auto m2         = _mm256_movemask_epi8( r );
+                    int c           = _mm_popcnt_u32( m2 );
 
-                        if ( c == remain )
+                    int mreq =
+                        ( 32 - mi ) > pattern.size() ?
+                            pattern.size() : 32 - mi;
+
+                    if ( c == mreq )
+                    {
+                        if ( mreq == pattern.size() )
                         {
                             count++;
+                        }
+                        else
+                        {
+                            int remain = pattern.size() - ( 32 - mi );
+
+                            octadword  = _mm256_load_si256( ( const __m256i * ) ( mm + i + 32 ) );
+                            r          = _mm256_cmpeq_epi8( octadword, sp2_256[ mreq ] );
+                            m2         = _mm256_movemask_epi8( r );
+                            c          = _mm_popcnt_u32( m2 );
+
+                            if ( c == remain )
+                            {
+                                count++;
+                            }
                         }
                     }
                 }

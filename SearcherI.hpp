@@ -16,7 +16,7 @@ public:
 
     int kMod        = 0x800000;
     int kBase       = 129;
-    int MMAP_SIZE   = 4096;
+    int MMAP_SIZE   = 4096 * 4;
 
     virtual uint32_t process( std::string & filename, std::string & pattern ) = 0;
 };
