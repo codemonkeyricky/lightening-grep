@@ -71,13 +71,12 @@ uint32_t SearcherSSE::process(
         sp2_256[ i ] = _mm256_loadu_si256( ( const __m256i * ) &sp2[ i ] );
     }
 
-    for ( auto k = 0; k < size; k += MMAP_SIZE )
+    for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
-        char * mm = ( char * ) mmap( 0, MMAP_SIZE, PROT_READ, MAP_SHARED, fd, k );
+        int ms = MMAP_SIZE + 32;
 
-//        // NOTE: _SIDD_LEAST_SIGNIFICANT sets the same bit as _SIDD_BIT_MASK
-//        // const int mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK;
-//        const int mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH;
+        char * mm = ( char * ) mmap( 0, ms, PROT_READ, MAP_SHARED, fd, offset );
+        assert( mm != ( void * ) -1 );
 
         for ( auto i = 0; i < MMAP_SIZE; i += 32 )
         {
@@ -89,31 +88,31 @@ uint32_t SearcherSSE::process(
             if ( resultMask )
             {
                 unsigned int m  = resultMask;
-                int matchIndex  = ffs( m ) - 1;
-                auto r          = _mm256_cmpeq_epi8( octadword, sp1_256[ matchIndex ] );
+                int mi          = ffs( m ) - 1;
+                auto r          = _mm256_cmpeq_epi8( octadword, sp1_256[ mi ] );
                 auto m2         = _mm256_movemask_epi8( r );
                 int c           = _mm_popcnt_u32( m2 );
 
-                int matchRequired =
-                    ( 32 - matchIndex ) > pattern.size() ?
-                        pattern.size() : 32 - matchIndex;
+                int mreq =
+                    ( 32 - mi ) > pattern.size() ?
+                        pattern.size() : 32 - mi;
 
-                if ( c == matchRequired )
+                if ( c == mreq )
                 {
-                    if ( matchRequired == pattern.size() )
+                    if ( mreq == pattern.size() )
                     {
                         count++;
                     }
                     else
                     {
-                        int remaining = pattern.size() - ( 32 - matchIndex );
+                        int remain = pattern.size() - ( 32 - mi );
 
                         octadword  = _mm256_load_si256( ( const __m256i * ) ( mm + i + 32 ) );
-                        r          = _mm256_cmpeq_epi8( octadword, sp2_256[ remaining ] );
+                        r          = _mm256_cmpeq_epi8( octadword, sp2_256[ mreq ] );
                         m2         = _mm256_movemask_epi8( r );
                         c          = _mm_popcnt_u32( m2 );
 
-                        if ( c == remaining )
+                        if ( c == remain )
                         {
                             count++;
                         }
@@ -122,7 +121,7 @@ uint32_t SearcherSSE::process(
             }
         }
 
-        munmap( mm, MMAP_SIZE );
+        munmap( mm, ms );
     }
 
     return count;
