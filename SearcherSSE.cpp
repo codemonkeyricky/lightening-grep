@@ -26,6 +26,7 @@ SearcherSSE::~SearcherSSE()
 
 }
 
+volatile int lineCount = 0;
 
 uint32_t SearcherSSE::process(
     string & filename,
@@ -44,6 +45,10 @@ uint32_t SearcherSSE::process(
     alignas( 32 ) char first8bitsRepeated[ 32 ];
     memset( first8bitsRepeated, pattern[ 0 ], 32 );
     auto firstLetterRepated = _mm256_loadu_si256( ( const __m256i * ) &first8bitsRepeated[ 0 ] );
+
+    alignas( 32 ) char nl[ 32 ];
+    memset( nl, '\n', 32 );
+    auto nl256 = _mm256_loadu_si256( ( const __m256i * ) nl );
 
     alignas( 32 ) char sp1[ 32 ][ 32 ];
     alignas( 32 ) char sp2[ 32 ][ 32 ];
@@ -124,10 +129,17 @@ uint32_t SearcherSSE::process(
                     }
                 }
             }
+
+            auto nls    = _mm256_cmpeq_epi8( octadword, nl256 );
+            auto nlm    = _mm256_movemask_epi8( nls );
+
+            lineCount  += _mm_popcnt_u32( nlm );
         }
 
         munmap( mm, ms );
     }
+
+    printf( "lineCount = %d\n", lineCount );
 
     return count;
 }
