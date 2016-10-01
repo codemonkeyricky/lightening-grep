@@ -35,3 +35,6 @@ T cQueue< T >::pop()
 
     return data;
 }
+
+
+template class cQueue< string >;

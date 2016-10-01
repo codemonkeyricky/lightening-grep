@@ -12,6 +12,7 @@
 //#include "SearcherCPU.hpp"
 //#include "SearcherAVX2.hpp"
 #include "SearcherBFAVX2.hpp"
+#include "cFileFinder.hpp"
 
 using namespace std;
 
@@ -19,6 +20,13 @@ int main()
 {
     SearcherBFAVX2  searcher;
 //    SearcherAVX2    avx2Search;
+
+    cQueue< string > q;
+    string p( "." );
+
+    cFileFinder     ff( q, p );
+
+    ff.start();
 
     string file     = "big2.txt";
     string pattern  = "code.monkey.ricky";
