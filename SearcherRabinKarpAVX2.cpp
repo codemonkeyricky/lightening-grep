@@ -1,3 +1,5 @@
+#include "SearcherRabinKarpAVX2.hpp"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -10,7 +12,6 @@
 #include <iostream>
 #include <vector>
 
-#include "SearcherAVX2.hpp"
 
 using namespace std;
 

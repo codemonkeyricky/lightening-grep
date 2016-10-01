@@ -1,3 +1,5 @@
+#include "SearcherBFAVX2.hpp"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -11,24 +13,22 @@
 #include <iostream>
 #include <vector>
 
-#include "SearcherSSE.hpp"
 
 using namespace std;
 
-SearcherSSE::SearcherSSE()
+SearcherBFAVX2::SearcherBFAVX2()
 {
 
 }
 
 
-SearcherSSE::~SearcherSSE()
+SearcherBFAVX2::~SearcherBFAVX2()
 {
 
 }
 
-volatile int lineCount = 0;
 
-uint32_t SearcherSSE::process(
+vector< SearcherI::Instance > SearcherBFAVX2::process(
     string & filename,
     string & pattern
     )
@@ -39,6 +39,9 @@ uint32_t SearcherSSE::process(
 
     // Limit for now.
     assert( pattern.size() <= 32 );
+
+    vector< Instance > summary;
+    int ln = 0;
 
     int count = 0;
 
@@ -86,6 +89,7 @@ uint32_t SearcherSSE::process(
         for ( auto i = 0; i < MMAP_SIZE; i += 32 )
         {
             auto octadword  = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
+            auto curr       = octadword;
 
             auto result     = _mm256_cmpeq_epi8( octadword, firstLetterRepated );
             auto resultMask = _mm256_movemask_epi8( result );
@@ -110,7 +114,7 @@ uint32_t SearcherSSE::process(
                     {
                         if ( mreq == pattern.size() )
                         {
-                            count++;
+                            summary.emplace_back( ln, 0 );
                         }
                         else
                         {
@@ -123,23 +127,24 @@ uint32_t SearcherSSE::process(
 
                             if ( c == remain )
                             {
-                                count++;
+                                summary.emplace_back( ln, 0 );
                             }
                         }
                     }
                 }
             }
 
-            auto nls    = _mm256_cmpeq_epi8( octadword, nl256 );
+            auto nls    = _mm256_cmpeq_epi8( curr, nl256 );
             auto nlm    = _mm256_movemask_epi8( nls );
+            auto lines  = _mm_popcnt_u32( nlm );
 
-            lineCount  += _mm_popcnt_u32( nlm );
+            ln  += lines;
         }
 
         munmap( mm, ms );
     }
 
-    printf( "lineCount = %d\n", lineCount );
+    printf( "lineCount = %d\n", ln );
 
-    return count;
+    return summary;
 }
