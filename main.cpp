@@ -26,7 +26,15 @@ int main()
 
     cFileFinder     ff( q, p );
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     ff.start();
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::cout << "Directory traverse() took "
+        << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
+        << " microseconds\n";
+
 
     cout << "### to print" << endl;
     string path;
@@ -42,8 +50,17 @@ int main()
 //    string file     = "cQueueLockless.cpp";
 //    string pattern  = "memory_order_relaxed";
 
+
+    start = std::chrono::high_resolution_clock::now();
+
 //    cpuSearch.process( file, pattern );
     auto matches = searcher.process( file, pattern );
+
+    finish = std::chrono::high_resolution_clock::now();
+    std::cout << "File Search took "
+        << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count()
+        << " microseconds\n";
+
 
     cout << "Matches = " << matches.size() << endl;
 
