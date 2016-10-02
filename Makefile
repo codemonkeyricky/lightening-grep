@@ -1,3 +1,10 @@
-all :
-	g++-5 -pg -g -O0 -mavx2 SearcherAVX2.cpp SearcherSSE.cpp main.cpp -std=gnu++11 -o sg_debug
-	g++-5 -g -O3 -mavx2 SearcherAVX2.cpp SearcherSSE.cpp main.cpp -std=gnu++11 -o sg_release
+CXX 		:= g++
+
+CXXFLAGS 	:= -mavx2
+
+DFLAGS 		:= -g -O0
+RFLAGS 		:= -O3
+
+all : SearcherBFAVX2.cpp main.cpp cQueue.cpp cFileFinder.cpp
+	$(CXX) $(CXXFLAGS) $(DFLAGS) $^ -std=gnu++11 -o gg_debug
+	$(CXX) $(CXXFLAGS) $(RFLAGS) $^ -std=gnu++11 -o gg

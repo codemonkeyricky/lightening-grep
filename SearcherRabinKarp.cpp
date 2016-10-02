@@ -9,7 +9,7 @@
 
 using namespace std;
 
-#include "SearcherCPU.hpp"
+#include "SearcherRabinKarp.hpp"
 
 SearcherCPU::SearcherCPU()
 {
