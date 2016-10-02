@@ -28,6 +28,14 @@ int main()
 
     ff.start();
 
+    cout << "### to print" << endl;
+    string path;
+    while ( q.pop( path ) )
+    {
+        cout << path << endl;
+    }
+    cout << "### " << endl;
+
     string file     = "big2.txt";
     string pattern  = "code.monkey.ricky";
 

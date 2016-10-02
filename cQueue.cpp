@@ -26,14 +26,19 @@ void cQueue< T >::push( T data )
 
 
 template <class T>
-T cQueue< T >::pop()
+bool cQueue< T >::pop( T & data )
 {
     lock_guard< mutex > lock( m_lock );
 
-    auto data = m_queue.front();
+    if ( m_queue.empty() )
+    {
+        return false;
+    }
+
+    data = m_queue.front();
     m_queue.pop();
 
-    return data;
+    return true;
 }
 
 

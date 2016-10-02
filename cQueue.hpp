@@ -11,7 +11,7 @@ public:
     ~cQueue();
 
     void push( T );
-    T    pop();
+    bool pop( T & );
 
 private:
     std::mutex      m_lock;

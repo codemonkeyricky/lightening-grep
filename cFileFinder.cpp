@@ -58,14 +58,14 @@ void cFileFinder::start()
                 string to_add;
                 if ( to_explore != "." )
                 {
-                    to_add += to_explore;
+                    to_add += to_explore + "/";
                 }
 
                 to_add += string( name );
 
                 m_pathToExplore.push( to_add );
 
-                cout << "### path : " << to_add << endl;
+//                cout << "### path : " << to_add << endl;
             }
             else
             {
@@ -98,12 +98,12 @@ void cFileFinder::start()
                 string to_add;
                 if ( to_explore != "." )
                 {
-                    to_add += to_explore;
+                    to_add += to_explore + "/";
                 }
 
                 to_add += string( name );
 
-                cout << "### file : " << to_add << endl;
+//                cout << "### file : " << to_add << endl;
 
                 m_fileList.push( to_add );
             }
