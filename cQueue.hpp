@@ -12,6 +12,7 @@ public:
 
     void push( T );
     bool pop( T & );
+    uint32_t size();
 
 private:
     std::mutex      m_lock;

@@ -42,4 +42,13 @@ bool cQueue< T >::pop( T & data )
 }
 
 
+template <class T>
+uint32_t cQueue< T >::size()
+{
+    lock_guard< mutex > lock( m_lock );
+
+    return m_queue.size();
+}
+
+
 template class cQueue< string >;

@@ -81,17 +81,17 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
 
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
-        int ms = MMAP_SIZE + 32;
+        auto ms = std::min( MMAP_SIZE + 32, size - offset );
 
         char * mm = ( char * ) mmap( 0, ms, PROT_READ, MAP_SHARED, fd, offset );
         assert( mm != ( void * ) -1 );
 
-        for ( auto i = 0; i < MMAP_SIZE; i += 32 )
+        for ( auto i = 0; i < ms; i += 32 )
         {
-            auto octadword  = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
-            auto curr       = octadword;
+            auto char32     = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
+            auto curr       = char32;
 
-            auto result     = _mm256_cmpeq_epi8( octadword, firstLetterRepated );
+            auto result     = _mm256_cmpeq_epi8( char32, firstLetterRepated );
             auto resultMask = _mm256_movemask_epi8( result );
 
             if ( resultMask )
@@ -99,12 +99,12 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
                 unsigned int m  = resultMask;
                 while ( m )
                 {
-                    int mi          = ffs( m ) - 1;
-                    m              &= m-1;
+                    int mi  = ffs( m ) - 1;
+                    m       &= m-1;
 
-                    auto r          = _mm256_cmpeq_epi8( octadword, sp1_256[ mi ] );
-                    auto m2         = _mm256_movemask_epi8( r );
-                    int c           = _mm_popcnt_u32( m2 );
+                    auto r  = _mm256_cmpeq_epi8( char32, sp1_256[ mi ] );
+                    auto m2 = _mm256_movemask_epi8( r );
+                    int c   = _mm_popcnt_u32( m2 );
 
                     int mreq =
                         ( 32 - mi ) > pattern.size() ?
@@ -114,20 +114,49 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
                     {
                         if ( mreq == pattern.size() )
                         {
-                            summary.emplace_back( ln, 0 );
+                            // Pattern found.
+
+                            // Switch to scalar code for better maintenance.
+
+                            char *pos = strstr( mm + i, pattern.c_str() );
+
+                            // Find the newlines preceding the pattern.
+                            int line = ln;
+                            char *curr = mm + i;
+                            while ( curr++ != pos )
+                                line += ( *curr == '\n' );
+
+                            char *start, *end;
+                            start = end = pos;
+
+                            // Find the previous newline.
+                            while ( *(--start) != '\n' )
+                            { }
+                            start++;
+
+                            // Find the end newline.
+                            while ( *(++end) != '\n' )
+                            { }
+
+                            auto content = string( start, end - start );
+                            summary.emplace_back(
+                                line + 1,
+                                pos - start,
+                                content
+                                );
                         }
                         else
                         {
                             int remain = pattern.size() - ( 32 - mi );
 
-                            octadword  = _mm256_load_si256( ( const __m256i * ) ( mm + i + 32 ) );
-                            r          = _mm256_cmpeq_epi8( octadword, sp2_256[ mreq ] );
-                            m2         = _mm256_movemask_epi8( r );
-                            c          = _mm_popcnt_u32( m2 );
+                            char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + 32 ) );
+                            r       = _mm256_cmpeq_epi8( char32, sp2_256[ mreq ] );
+                            m2      = _mm256_movemask_epi8( r );
+                            c       = _mm_popcnt_u32( m2 );
 
                             if ( c == remain )
                             {
-                                summary.emplace_back( ln, 0 );
+//                                summary.emplace_back( ln, 0 );
                             }
                         }
                     }
@@ -144,7 +173,7 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
         munmap( mm, ms );
     }
 
-    printf( "lineCount = %d\n", ln );
+//    printf( "lineCount = %d\n", ln );
 
     return summary;
 }

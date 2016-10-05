@@ -8,7 +8,7 @@ public:
     SearcherAVX2();
     ~SearcherAVX2();
 
-    uint32_t process( std::string & filename, std::string & pattern );
+    virtual std::vector< Instance > process( std::string & filename, std::string & pattern );
 
 private:
     int kMod    = 0x800000;

@@ -137,7 +137,7 @@ int vsearch(
 }
 
 
-uint32_t SearcherAVX2::process(
+vector< SearcherI::Instance > SearcherAVX2::process(
     string & filename,
     string & pattern
     )
@@ -147,6 +147,8 @@ uint32_t SearcherAVX2::process(
     string s    = pattern;
 
     int count = 0;
+
+    vector< SearcherI::Instance >   result;
 
     for ( auto k = 0; k < size; k += MMAP_SIZE )
     {
@@ -180,5 +182,5 @@ uint32_t SearcherAVX2::process(
         munmap( data, MMAP_SIZE );
     }
 
-    return count;
+    return result;
 }

@@ -83,8 +83,8 @@ void cFileFinder::start()
                 }
 
                 int allow = 0;
-                if ( strcmp( ext, ".cpp" ) == 0
-                    || strcmp( ext, ".hpp" ) == 0
+                if ( strcmp( ext, ".c" ) == 0
+                    || strcmp( ext, ".h" ) == 0
                 )
                 {
                     allow = 1;
