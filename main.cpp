@@ -50,9 +50,16 @@ void patternFinder(
     string path;
     while ( fileList->pop( path ) )
     {
+        string test( "include/linux/init.h" );
+        if ( !path.compare( test ) )
+        {
+//            assert( 1 );
+            count++;
+        }
+
         auto s = std::chrono::high_resolution_clock::now();
 
-        // cout << "File to process : " << path << endl;
+//         cout << "File to process : " << path << endl;
         auto result = searcher.process( path, pattern );
 
         auto e = std::chrono::high_resolution_clock::now();
@@ -61,13 +68,6 @@ void patternFinder(
             ssv.emplace_back( path, result );
 
 ////        std::cout << "File process time = " << std::chrono::duration_cast<std::chrono::microseconds>(e - s).count() << " us" << endl;
-//
-//        if ( result.size() != 0 )
-//        {
-//            matches += result.size();
-//        }
-//
-//        count++;
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -108,13 +108,14 @@ int main()
 //    string pattern  = "arch_get_unmapped_area";
     string pattern  = "late_initcall_sync";
 
+    patternFinder( &fileQ, pattern );
 
-    thread t1( patternFinder, &fileQ, pattern );
+//    thread t1( patternFinder, &fileQ, pattern );
 //    thread t2( patternFinder, &fileQ, pattern );
 //    thread t3( patternFinder, &fileQ, pattern );
 //    thread t4( patternFinder, &fileQ, pattern );
 
-    t1.join();
+//    t1.join();
 //    t2.join();
 //    t3.join();
 //    t4.join();

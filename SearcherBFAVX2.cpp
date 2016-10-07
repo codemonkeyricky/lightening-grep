@@ -13,7 +13,6 @@
 #include <iostream>
 #include <vector>
 
-
 using namespace std;
 
 SearcherBFAVX2::SearcherBFAVX2()
@@ -120,6 +119,9 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
 
                             char *pos = strstr( mm + i, pattern.c_str() );
 
+                            if ( pos == 0 )
+                                continue;
+
                             // Find the newlines preceding the pattern.
                             int line = ln;
                             char *curr = mm + i;
@@ -156,7 +158,12 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
 
                             if ( c == remain )
                             {
-//                                summary.emplace_back( ln, 0 );
+                                string nothing;
+                                summary.emplace_back(
+                                    ln + 1,
+                                    0,
+                                    nothing
+                                );
                             }
                         }
                     }
@@ -174,6 +181,8 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
     }
 
 //    printf( "lineCount = %d\n", ln );
+
+    close( fd );
 
     return summary;
 }
