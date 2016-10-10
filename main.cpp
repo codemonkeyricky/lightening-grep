@@ -17,8 +17,6 @@
 
 using namespace std;
 
-static atomic< int > total_matches;
-
 struct SearchSummary
 {
     SearchSummary( string &name, vector< SearcherI::Instance > & result )
@@ -57,34 +55,28 @@ void patternFinder(
             count++;
         }
 
-        auto s = std::chrono::high_resolution_clock::now();
-
-//         cout << "File to process : " << path << endl;
         auto result = searcher.process( path, pattern );
-
-        auto e = std::chrono::high_resolution_clock::now();
 
         if ( result.size() > 0 )
             ssv.emplace_back( path, result );
-
-////        std::cout << "File process time = " << std::chrono::duration_cast<std::chrono::microseconds>(e - s).count() << " us" << endl;
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
     std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
 
-    total_matches += matches;
-
     cout << "Total records processed = " << count << endl;
 
     for ( auto & ss : ssv )
     {
-        cout << ss.name << endl;
+        cout << "\033[1;32m" << ss.name << "\033[0m" << endl;
 
         for ( auto & r : ss.result )
         {
-            cout << r.line << " : " << r.content << endl;
+            cout << "\033[1;33m" << r.line <<
+                "\033[0m" << " : " << r.content << endl;
         }
+
+        cout << endl;
     }
 }
 
@@ -104,9 +96,8 @@ int main()
     std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
     cout << "Total records = " << fileQ.size() << endl;
 
-    string file     = "big2.txt";
-//    string pattern  = "arch_get_unmapped_area";
-    string pattern  = "late_initcall_sync";
+    string pattern  = "perf_kvm__mmap_read_idx";
+//    string pattern  = "late_initcall_sync";
 
     patternFinder( &fileQ, pattern );
 
@@ -119,8 +110,6 @@ int main()
 //    t2.join();
 //    t3.join();
 //    t4.join();
-
-    cout << "total matches = " << total_matches << endl;
 
     return 0;
 }

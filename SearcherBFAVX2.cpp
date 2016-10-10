@@ -32,6 +32,47 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
     string & pattern
     )
 {
+    auto insertRecord = [] (
+        const char   *curr,
+        const char   *pattern,
+        int     currline,
+        vector< Instance > &summary
+        )
+    {
+        // Pattern found.
+
+        // Switch to scalar code for better maintenance.
+
+        auto pos = strstr( curr, pattern );
+
+        if ( pos == 0 )
+            return;
+
+        // Find the newlines preceding the pattern.
+        int line = currline;
+        while ( curr++ != pos )
+            line += ( *curr == '\n' );
+
+        auto start = pos;
+        auto end = pos;
+
+        // Find the previous newline.
+        while ( *(--start) != '\n' )
+        { }
+        start++;
+
+        // Find the end newline.
+        while ( *(++end) != '\n' )
+        { }
+
+        auto content = string( start, end - start );
+        summary.emplace_back(
+            line + 1,
+            pos - start,
+            content
+        );
+    };
+
     int fd      = open( filename.c_str(), O_RDONLY );
     int size    = lseek( fd, 0, SEEK_END );
     string s    = pattern;
@@ -109,43 +150,12 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
                         ( 32 - mi ) > pattern.size() ?
                             pattern.size() : 32 - mi;
 
+
                     if ( c == mreq )
                     {
                         if ( mreq == pattern.size() )
                         {
-                            // Pattern found.
-
-                            // Switch to scalar code for better maintenance.
-
-                            char *pos = strstr( mm + i, pattern.c_str() );
-
-                            if ( pos == 0 )
-                                continue;
-
-                            // Find the newlines preceding the pattern.
-                            int line = ln;
-                            char *curr = mm + i;
-                            while ( curr++ != pos )
-                                line += ( *curr == '\n' );
-
-                            char *start, *end;
-                            start = end = pos;
-
-                            // Find the previous newline.
-                            while ( *(--start) != '\n' )
-                            { }
-                            start++;
-
-                            // Find the end newline.
-                            while ( *(++end) != '\n' )
-                            { }
-
-                            auto content = string( start, end - start );
-                            summary.emplace_back(
-                                line + 1,
-                                pos - start,
-                                content
-                                );
+                            insertRecord( mm + i, pattern.c_str(), ln, summary );
                         }
                         else
                         {
@@ -158,12 +168,7 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
 
                             if ( c == remain )
                             {
-                                string nothing;
-                                summary.emplace_back(
-                                    ln + 1,
-                                    0,
-                                    nothing
-                                );
+                                insertRecord( mm + i, pattern.c_str(), ln, summary );
                             }
                         }
                     }
