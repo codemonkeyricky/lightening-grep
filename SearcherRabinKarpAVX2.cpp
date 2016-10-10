@@ -137,7 +137,7 @@ int vsearch(
 }
 
 
-vector< SearcherI::Instance > SearcherAVX2::process(
+vector< SearcherI::sMatchInstance > SearcherAVX2::process(
     string & filename,
     string & pattern
     )
@@ -148,7 +148,7 @@ vector< SearcherI::Instance > SearcherAVX2::process(
 
     int count = 0;
 
-    vector< SearcherI::Instance >   result;
+    vector< SearcherI::sMatchInstance >   result;
 
     for ( auto k = 0; k < size; k += MMAP_SIZE )
     {

@@ -27,7 +27,7 @@ SearcherBFAVX2::~SearcherBFAVX2()
 }
 
 
-vector< SearcherI::Instance > SearcherBFAVX2::process(
+vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
     string & filename,
     string & pattern
     )
@@ -36,7 +36,7 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
         const char   *curr,
         const char   *pattern,
         int     currline,
-        vector< Instance > &summary
+        vector< sMatchInstance > &summary
         )
     {
         // Pattern found.
@@ -80,7 +80,7 @@ vector< SearcherI::Instance > SearcherBFAVX2::process(
     // Limit for now.
     assert( pattern.size() <= 32 );
 
-    vector< Instance > summary;
+    vector< sMatchInstance > summary;
     int ln = 0;
 
     int count = 0;

@@ -14,20 +14,10 @@
 #include "SearcherBFAVX2.hpp"
 #include "SearcherRabinKarpAVX2.hpp"
 #include "cFileFinder.hpp"
+#include "Printer.hpp"
 
 using namespace std;
 
-struct SearchSummary
-{
-    SearchSummary( string &name, vector< SearcherI::Instance > & result )
-        : name( name ), result( result )
-    {
-
-    }
-
-    string                          name;
-    vector< SearcherI::Instance >   result;
-};
 
 void patternFinder(
     cQueue< string >   * fileList,
@@ -35,15 +25,13 @@ void patternFinder(
     )
 {
     SearcherBFAVX2  searcher;
-//    SearcherAVX2    searcher;
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    int matches = 0;
 
     int count = 0;
 
-    vector< SearchSummary > ssv;
+    vector< SearcherI::sFileSummary > ssv;
 
     string path;
     while ( fileList->pop( path ) )
@@ -66,18 +54,7 @@ void patternFinder(
 
     cout << "Total records processed = " << count << endl;
 
-    for ( auto & ss : ssv )
-    {
-        cout << "\033[1;32m" << ss.name << "\033[0m" << endl;
-
-        for ( auto & r : ss.result )
-        {
-            cout << "\033[1;33m" << r.line <<
-                "\033[0m" << " : " << r.content << endl;
-        }
-
-        cout << endl;
-    }
+    Printer::FileSummary( ssv );
 }
 
 
