@@ -76,6 +76,7 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
     int fd      = open( filename.c_str(), O_RDONLY );
     int size    = lseek( fd, 0, SEEK_END );
     string s    = pattern;
+    int patternSize = pattern.size();
 
     // Limit for now.
     assert( pattern.size() <= 32 );
@@ -103,6 +104,8 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
 
     for ( auto i = 0; i < 32; i++ )
     {
+        // First half.
+
         memset( sp1[ i ], 0, 32 );
 
         int buffer_size = 32 - i;
@@ -111,6 +114,8 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
 
         memcpy( &sp1[ i ][ i ], pattern.c_str(), to_copy );
         sp1_256[ i ] = _mm256_loadu_si256( ( const __m256i * ) &sp1[ i ] );
+
+        // Second half.
 
         to_copy = ( i < pattern.size() ) ?
             ( pattern.size() - i ) : 0;
@@ -131,48 +136,58 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
             auto char32     = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
             auto curr       = char32;
 
-            auto result     = _mm256_cmpeq_epi8( char32, firstLetterRepated );
-            auto resultMask = _mm256_movemask_epi8( result );
+            auto match      = _mm256_cmpeq_epi8( char32, firstLetterRepated );
+            auto matchMask  = _mm256_movemask_epi8( match );
 
-            if ( resultMask )
+            // Iterate through all mask bits.
+            while ( matchMask )
             {
-                unsigned int m  = resultMask;
-                while ( m )
+                // Find the bit offset.
+                int patternOffset   = ffs( matchMask ) - 1;
+
+                int bytesCompared   = 0;
+                int iteration       = 0;
+                while ( bytesCompared < patternSize )
                 {
-                    int mi  = ffs( m ) - 1;
-                    m       &= m-1;
+                    auto r              = _mm256_cmpeq_epi8(
+                        char32,
+                        ( iteration == 0 ) ?
+                            sp1_256[ patternOffset ] : sp2_256[ patternOffset ] );
 
-                    auto r  = _mm256_cmpeq_epi8( char32, sp1_256[ mi ] );
-                    auto m2 = _mm256_movemask_epi8( r );
-                    int c   = _mm_popcnt_u32( m2 );
+                    auto m2             = _mm256_movemask_epi8( r );
+                    int matchedBytes    = _mm_popcnt_u32( m2 );
 
-                    int mreq =
-                        ( 32 - mi ) > pattern.size() ?
-                            pattern.size() : 32 - mi;
+                    // Find matching letters required.
+                    int bytesRemaining = patternSize - bytesCompared;
 
+                    int bytesRequiredToMatch = ( iteration == 0 ) ?
+                        std::min( 32 - patternOffset, patternSize ) : bytesRemaining;
 
-                    if ( c == mreq )
+                    // Failed to match.
+                    if ( matchedBytes != bytesRequiredToMatch )
+                        break;
+
+                    // Accounting.
+                    bytesCompared += bytesRequiredToMatch;
+
+                    // If all bytes match, then we found the string.
+                    if ( bytesCompared == patternSize )
                     {
-                        if ( mreq == pattern.size() )
-                        {
-                            insertRecord( mm + i, pattern.c_str(), ln, summary );
-                        }
-                        else
-                        {
-                            int remain = pattern.size() - ( 32 - mi );
+                        insertRecord( mm + i, pattern.c_str(), ln, summary );
 
-                            char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + 32 ) );
-                            r       = _mm256_cmpeq_epi8( char32, sp2_256[ mreq ] );
-                            m2      = _mm256_movemask_epi8( r );
-                            c       = _mm_popcnt_u32( m2 );
-
-                            if ( c == remain )
-                            {
-                                insertRecord( mm + i, pattern.c_str(), ln, summary );
-                            }
-                        }
+                        break;
                     }
+
+                    iteration ++;
+
+                    // Load the next 32 bytes.
+                    char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + iteration * 32 ) );
+
+                    patternOffset = bytesRequiredToMatch;
                 }
+
+                // Remove the lsb from mask.
+                matchMask   &= matchMask - 1;
             }
 
             auto nls    = _mm256_cmpeq_epi8( curr, nl256 );

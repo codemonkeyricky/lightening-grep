@@ -36,12 +36,12 @@ void patternFinder(
     string path;
     while ( fileList->pop( path ) )
     {
-        string test( "include/linux/init.h" );
-        if ( !path.compare( test ) )
-        {
-//            assert( 1 );
-            count++;
-        }
+//        string test( "include/linux/init.h" );
+//        if ( !path.compare( test ) )
+//        {
+////            assert( 1 );
+//            count++;
+//        }
 
         auto result = searcher.process( path, pattern );
 
@@ -50,9 +50,9 @@ void patternFinder(
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
-    std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
+//    std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
 
-    cout << "Total records processed = " << count << endl;
+//    cout << "Total records processed = " << count << endl;
 
     Printer::FileSummary( ssv );
 }
@@ -70,10 +70,10 @@ int main()
     ff.start();
 
     auto finish = std::chrono::high_resolution_clock::now();
-    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
-    cout << "Total records = " << fileQ.size() << endl;
+//    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
+//    cout << "Total records = " << fileQ.size() << endl;
 
-    string pattern  = "perf_kvm__mmap_read_idx";
+    string pattern  = "msc_mmap_open";
 //    string pattern  = "late_initcall_sync";
 
     patternFinder( &fileQ, pattern );
