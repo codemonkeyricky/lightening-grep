@@ -133,12 +133,16 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
         sp2_256[ i ] = _mm256_loadu_si256( ( const __m256i * ) &sp2[ i ] );
     }
 
+    char mm[ MMAP_SIZE ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
         auto ms = std::min( MMAP_SIZE + 32, size - offset );
 
-        char * mm = ( char * ) mmap( 0, ms, PROT_READ, MAP_SHARED, fd, offset );
-        assert( mm != ( void * ) -1 );
+//        char * mm = ( char * ) mmap( 0, ms, PROT_READ, MAP_SHARED, fd, offset );
+//        assert( mm != ( void * ) -1 );
+        lseek( fd, offset, SEEK_SET );
+//        memset( mm, 0, sizeof( mm ) );
+        read( fd, mm, ms );
 
         for ( auto i = 0; i < ms; i += 32 )
         {
