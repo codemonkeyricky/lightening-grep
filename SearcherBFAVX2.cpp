@@ -133,6 +133,12 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
 
         for ( auto i = 0; i < ms; i += 32 )
         {
+            if ( i == 2560 )
+            {
+                i += 3;
+                i -=3;
+            }
+
             auto char32     = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
             auto curr       = char32;
 
@@ -164,11 +170,24 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
                         std::min( 32 - patternOffset, patternSize ) : bytesRemaining;
 
                     // Failed to match.
-                    if ( matchedBytes != bytesRequiredToMatch )
+                    if ( matchedBytes < bytesRequiredToMatch )
+                    {
                         break;
+                    }
+                    else if ( matchedBytes > bytesRequiredToMatch )
+                    {
+                        auto of = i + iteration * 32 + 32;
+                        if ( ms < of )
+                        {
+                            matchedBytes -= of - ms;
+
+                            // Loaded beyond end of file. False positives may hit due to null characters.
+                            // Adjust matchedBytes accordingly.
+                        }
+                    }
 
                     // Accounting.
-                    bytesCompared += bytesRequiredToMatch;
+                    bytesCompared += matchedBytes;
 
                     // If all bytes match, then we found the string.
                     if ( bytesCompared == patternSize )

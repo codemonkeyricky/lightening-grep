@@ -58,22 +58,47 @@ void patternFinder(
 }
 
 
-int main()
+int main(
+    int argc,
+    char **argv
+    )
 {
     cQueue< string >    fileQ;
     string              dir( "." );
 
-    cFileFinder         ff( fileQ, dir );
+    if ( argc < 2 )
+    {
+        return -1;
+    }
+
+    string pattern = argv[ 1 ];
+
+    string fileToSearch;
+    if ( argc == 3 )
+    {
+        fileToSearch = argv[ 2 ];
+    }
+
+//    cout << pattern << endl;
+
+    if ( fileToSearch == "" )
+    {
+        cFileFinder         ff( fileQ, dir );
+    ff.start();
+    }
+    else
+    {
+        fileQ.push( fileToSearch );
+    }
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    ff.start();
 
     auto finish = std::chrono::high_resolution_clock::now();
 //    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
 //    cout << "Total records = " << fileQ.size() << endl;
 
-    string pattern  = "msc_mmap_open";
+//    string pattern  = "msc_mmap_open";
 //    string pattern  = "late_initcall_sync";
 
     patternFinder( &fileQ, pattern );

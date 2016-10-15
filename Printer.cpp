@@ -13,7 +13,7 @@ void FileSummary(
 {
     for ( auto & ss : ssv )
     {
-        cout << "\033[1;32m" << ss.name << "\033[0m" << endl;
+        cout << "\033[1;36m" << ss.name << "\033[0m" << endl;
 
         for ( auto & r : ss.result )
         {
