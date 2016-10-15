@@ -43,6 +43,8 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
 
         // Switch to scalar code for better maintenance.
 
+        static int lastInsertedLn = -1;
+
         auto pos = strstr( curr, pattern );
 
         if ( pos == 0 )
@@ -66,11 +68,18 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
         { }
 
         auto content = string( start, end - start );
-        summary.emplace_back(
-            line + 1,
-            pos - start,
-            content
-        );
+
+        // Multiple matches on one line only needs to be inserted once.
+        if ( line + 1 != lastInsertedLn )
+        {
+            summary.emplace_back(
+                line + 1,
+                pos - start,
+                content
+            );
+        }
+
+        lastInsertedLn = line + 1;
     };
 
     int fd      = open( filename.c_str(), O_RDONLY );
