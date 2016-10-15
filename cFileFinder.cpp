@@ -8,7 +8,7 @@
 using namespace std;
 
 cFileFinder::cFileFinder(
-    cQueue< std::string >   &q,
+    std::vector< std::string >   &q,
     std::string             &p
     )
 : m_fileList( q ),
@@ -105,7 +105,7 @@ void cFileFinder::start()
 
 //                cout << "### file : " << to_add << endl;
 
-                m_fileList.push( to_add );
+                m_fileList.push_back( to_add );
             }
         }
 

@@ -7,7 +7,7 @@
 class cFileFinder
 {
 public:
-    cFileFinder( cQueue< std::string > &q, std::string & path );
+    cFileFinder( std::vector< std::string > &q, std::string & path );
     ~cFileFinder();
 
     void start();
@@ -20,7 +20,7 @@ public:
     };
 
 private:
-    cQueue< std::string >      &m_fileList;
+    std::vector< std::string >      &m_fileList;
     std::queue< std::string >   m_pathToExplore;
     std::string                 m_rootPath;
 };

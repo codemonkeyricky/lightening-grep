@@ -20,7 +20,7 @@ using namespace std;
 
 
 void patternFinder(
-    cQueue< string >   * fileList,
+    vector< string >   * fileList,
     string              pattern
     )
 {
@@ -34,7 +34,8 @@ void patternFinder(
     vector< SearcherI::sFileSummary > ssv;
 
     string path;
-    while ( fileList->pop( path ) )
+//    while ( fileList->pop( path ) )
+    for ( auto & path : *fileList )
     {
 //        string test( "include/linux/init.h" );
 //        if ( !path.compare( test ) )
@@ -63,7 +64,7 @@ int main(
     char **argv
     )
 {
-    cQueue< string >    fileQ;
+    vector< string >    fileQ;
     string              dir( "." );
 
     if ( argc < 2 )
@@ -88,7 +89,7 @@ int main(
     }
     else
     {
-        fileQ.push( fileToSearch );
+        fileQ.push_back( fileToSearch );
     }
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -101,17 +102,26 @@ int main(
 //    string pattern  = "msc_mmap_open";
 //    string pattern  = "late_initcall_sync";
 
+#if 1
     patternFinder( &fileQ, pattern );
+#else
 
-//    thread t1( patternFinder, &fileQ, pattern );
-//    thread t2( patternFinder, &fileQ, pattern );
-//    thread t3( patternFinder, &fileQ, pattern );
-//    thread t4( patternFinder, &fileQ, pattern );
+    auto divider = 1;
+    std::vector< string > q1( fileQ.begin() + fileQ.size() / divider * 0, fileQ.begin() + fileQ.size() / divider * 1 );
+//    std::vector< string > q2( fileQ.begin() + fileQ.size() / divider * 1, fileQ.begin() + fileQ.size() / divider * 2 );
+//    std::vector< string > q3( fileQ.begin() + fileQ.size() / divider * 2, fileQ.begin() + fileQ.size() / divider * 3 );
+//    std::vector< string > q4( fileQ.begin() + fileQ.size() / divider * 3, fileQ.begin() + fileQ.size() / divider * 4 );
 
-//    t1.join();
+    thread t1( patternFinder, &q1, pattern );
+//    thread t2( patternFinder, &q2, pattern );
+//    thread t3( patternFinder, &q3, pattern );
+//    thread t4( patternFinder, &q4, pattern );
+
+    t1.join();
 //    t2.join();
 //    t3.join();
 //    t4.join();
+#endif
 
     return 0;
 }
