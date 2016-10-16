@@ -58,7 +58,7 @@ cGrep::~cGrep()
 }
 
 
-void cGrep::populateFileList()
+void cGrep::populateJobQueue()
 {
     if ( m_filePath != "" )
     {
@@ -79,11 +79,8 @@ void cGrep::populateFileList()
 }
 
 
-void cGrep::start()
+void cGrep::startJobs()
 {
-    populateFileList();
-
-
     int workerThreads = 4;
     vector< thread >            pool;
     vector< vector< string > >  jobs;
@@ -104,4 +101,12 @@ void cGrep::start()
     {
         thread.join();
     }
+}
+
+
+void cGrep::start()
+{
+    populateJobQueue();
+
+    startJobs();
 }

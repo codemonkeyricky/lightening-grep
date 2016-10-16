@@ -12,8 +12,8 @@ public:
     void start();
 
 private:
-    void populateFileList();
-
+    void populateJobQueue();
+    void startJobs();
 
     std::vector< std::string >    fileQ;
 
