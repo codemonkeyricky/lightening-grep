@@ -4,9 +4,10 @@
 #include <thread>
 
 #include "cGrep.hpp"
+
 #include "cFileFinder.hpp"
+#include "cPrinter.hpp"
 #include "cSearcherNativeAVX2.hpp"
-#include "Printer.hpp"
 
 using namespace std;
 
@@ -37,7 +38,7 @@ void patternFinder(
     cout << "Total records processed = " << count << endl;
 #endif
 
-    Printer::FileSummary( ssv );
+    cPrinter::print( ssv );
 }
 
 

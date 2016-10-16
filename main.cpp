@@ -13,8 +13,8 @@
 
 #include "SearcherRabinKarpAVX2.hpp"
 #include "cFileFinder.hpp"
-#include "Printer.hpp"
 #include "cGrep.hpp"
+#include "cPrinter.hpp"
 #include "cSearcherNativeAVX2.hpp"
 
 using namespace std;
