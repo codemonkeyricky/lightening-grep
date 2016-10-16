@@ -15,6 +15,9 @@
 
 using namespace std;
 
+#define PATTERN_SIZE_MAX    64
+#define REGISTERS_REQUIRED     ( PATTERN_SIZE_MAX / REGISTER_BYTE_WIDTH )
+
 cSearcherNativeAVX2::cSearcherNativeAVX2()
 {
 
@@ -106,34 +109,20 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
     memset( nl, '\n', REGISTER_BYTE_WIDTH );
     auto nl256 = _mm256_loadu_si256( ( const __m256i * ) nl );
 
-    alignas( REGISTER_BYTE_WIDTH ) char sp1[ REGISTER_BYTE_WIDTH ][ REGISTER_BYTE_WIDTH ];
-    alignas( REGISTER_BYTE_WIDTH ) char sp2[ REGISTER_BYTE_WIDTH ][ REGISTER_BYTE_WIDTH ];
-    __m256i sp1_256[ REGISTER_BYTE_WIDTH ];
-    __m256i sp2_256[ REGISTER_BYTE_WIDTH ];
-
-    memset( sp1, 0, sizeof( sp1 ) );
-    memset( sp2, 0, sizeof( sp2 ) );
+    alignas( REGISTER_BYTE_WIDTH ) char sp[ REGISTER_BYTE_WIDTH ][ PATTERN_SIZE_MAX ] = { 0 };
+    __m256i sp_256[ REGISTER_BYTE_WIDTH ][ REGISTERS_REQUIRED ];
 
     for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
     {
-        // First half.
+        memcpy( &( sp[ i ][ i ] ), pattern.c_str(), pattern.size() );
+    }
 
-        memset( sp1[ i ], 0, REGISTER_BYTE_WIDTH );
-
-        int buffer_size = REGISTER_BYTE_WIDTH - i;
-        int to_copy = ( pattern.size() < buffer_size ) ?
-            pattern.size() : buffer_size;
-
-        memcpy( &sp1[ i ][ i ], pattern.c_str(), to_copy );
-        sp1_256[ i ] = _mm256_loadu_si256( ( const __m256i * ) &sp1[ i ] );
-
-        // Second half.
-
-        to_copy = ( i < pattern.size() ) ?
-            ( pattern.size() - i ) : 0;
-
-        memcpy( &sp2[ i ][ 0 ], pattern.c_str() + i, to_copy );
-        sp2_256[ i ] = _mm256_loadu_si256( ( const __m256i * ) &sp2[ i ] );
+    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
+    {
+        for ( auto j = 0; j < REGISTERS_REQUIRED; j++ )
+        {
+            sp_256[ i ][ j ] = _mm256_loadu_si256( ( const __m256i * ) &sp[ i ][ j * REGISTER_BYTE_WIDTH ] );
+        }
     }
 
     alignas( REGISTER_BYTE_WIDTH ) char mm[ MMAP_SIZE ];
@@ -163,10 +152,7 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
                 int iteration       = 0;
                 while ( bytesCompared < patternSize )
                 {
-                    auto r              = _mm256_cmpeq_epi8(
-                        char32,
-                        ( iteration == 0 ) ?
-                            sp1_256[ patternOffset ] : sp2_256[ patternOffset ] );
+                    auto r              = _mm256_cmpeq_epi8( char32, sp_256[ patternOffset ][ iteration ] );
 
                     auto m2             = _mm256_movemask_epi8( r );
                     int matchedBytes    = _mm_popcnt_u32( m2 );
@@ -205,12 +191,10 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
                         break;
                     }
 
-                    iteration ++;
-
                     // Load the next 32 bytes.
-                    char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + iteration * REGISTER_BYTE_WIDTH ) );
+                    char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + ( ++ iteration ) * REGISTER_BYTE_WIDTH ) );
 
-                    patternOffset = bytesRequiredToMatch;
+//                    patternOffset = bytesRequiredToMatch;
                 }
 
                 // Remove the lsb from mask.
