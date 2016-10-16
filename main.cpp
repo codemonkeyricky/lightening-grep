@@ -11,7 +11,7 @@
 #include <thread>
 #include <atomic>
 
-#include "SearcherBFAVX2.hpp"
+#include "SearcherNativeAVX2.hpp"
 #include "SearcherRabinKarpAVX2.hpp"
 #include "cFileFinder.hpp"
 #include "Printer.hpp"
@@ -24,7 +24,7 @@ void patternFinder(
     string              pattern
     )
 {
-    SearcherBFAVX2  searcher;
+    SearcherNativeAVX2  searcher;
 
     auto start = std::chrono::high_resolution_clock::now();
 
