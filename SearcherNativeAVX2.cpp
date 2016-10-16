@@ -136,7 +136,7 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
         sp2_256[ i ] = _mm256_loadu_si256( ( const __m256i * ) &sp2[ i ] );
     }
 
-    char mm[ MMAP_SIZE ];
+    alignas( REGISTER_BYTE_WIDTH ) char mm[ MMAP_SIZE ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
         auto ms = std::min( MMAP_SIZE + REGISTER_BYTE_WIDTH, size - offset );
