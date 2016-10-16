@@ -58,6 +58,9 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
         auto start = pos;
         auto end = pos;
 
+        // TODO: If the line straddles between page boundaries the code would
+        // crash because the code below cannot find new lines.
+
         // Find the previous newline.
         while ( *(--start) != '\n' )
         { }
@@ -88,36 +91,36 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
     int patternSize = pattern.size();
 
     // Limit for now.
-    assert( pattern.size() <= 32 );
+    assert( pattern.size() <= REGISTER_BYTE_WIDTH );
 
     vector< sMatchInstance > summary;
     int ln = 0;
 
     int count = 0;
 
-    alignas( 32 ) char first8bitsRepeated[ 32 ];
-    memset( first8bitsRepeated, pattern[ 0 ], 32 );
+    alignas( REGISTER_BYTE_WIDTH ) char first8bitsRepeated[ REGISTER_BYTE_WIDTH ];
+    memset( first8bitsRepeated, pattern[ 0 ], REGISTER_BYTE_WIDTH );
     auto firstLetterRepated = _mm256_loadu_si256( ( const __m256i * ) &first8bitsRepeated[ 0 ] );
 
-    alignas( 32 ) char nl[ 32 ];
-    memset( nl, '\n', 32 );
+    alignas( REGISTER_BYTE_WIDTH ) char nl[ REGISTER_BYTE_WIDTH ];
+    memset( nl, '\n', REGISTER_BYTE_WIDTH );
     auto nl256 = _mm256_loadu_si256( ( const __m256i * ) nl );
 
-    alignas( 32 ) char sp1[ 32 ][ 32 ];
-    alignas( 32 ) char sp2[ 32 ][ 32 ];
-    __m256i sp1_256[ 32 ];
-    __m256i sp2_256[ 32 ];
+    alignas( REGISTER_BYTE_WIDTH ) char sp1[ REGISTER_BYTE_WIDTH ][ REGISTER_BYTE_WIDTH ];
+    alignas( REGISTER_BYTE_WIDTH ) char sp2[ REGISTER_BYTE_WIDTH ][ REGISTER_BYTE_WIDTH ];
+    __m256i sp1_256[ REGISTER_BYTE_WIDTH ];
+    __m256i sp2_256[ REGISTER_BYTE_WIDTH ];
 
     memset( sp1, 0, sizeof( sp1 ) );
     memset( sp2, 0, sizeof( sp2 ) );
 
-    for ( auto i = 0; i < 32; i++ )
+    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
     {
         // First half.
 
-        memset( sp1[ i ], 0, 32 );
+        memset( sp1[ i ], 0, REGISTER_BYTE_WIDTH );
 
-        int buffer_size = 32 - i;
+        int buffer_size = REGISTER_BYTE_WIDTH - i;
         int to_copy = ( pattern.size() < buffer_size ) ?
             pattern.size() : buffer_size;
 
@@ -136,13 +139,13 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
     char mm[ MMAP_SIZE ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
-        auto ms = std::min( MMAP_SIZE + 32, size - offset );
+        auto ms = std::min( MMAP_SIZE + REGISTER_BYTE_WIDTH, size - offset );
 
         lseek( fd, offset, SEEK_SET );
         auto rd = read( fd, mm, ms );
         assert( ms == rd );
 
-        for ( auto i = 0; i < ms; i += 32 )
+        for ( auto i = 0; i < ms; i += REGISTER_BYTE_WIDTH )
         {
             auto char32     = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
             auto curr       = char32;
@@ -172,7 +175,7 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
                     int bytesRemaining = patternSize - bytesCompared;
 
                     int bytesRequiredToMatch = ( iteration == 0 ) ?
-                        std::min( 32 - patternOffset, patternSize ) : bytesRemaining;
+                        std::min( REGISTER_BYTE_WIDTH - patternOffset, patternSize ) : bytesRemaining;
 
                     // Failed to match.
                     if ( matchedBytes < bytesRequiredToMatch )
@@ -181,7 +184,7 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
                     }
                     else if ( matchedBytes > bytesRequiredToMatch )
                     {
-                        auto of = i + iteration * 32 + 32;
+                        auto of = i + iteration * REGISTER_BYTE_WIDTH + REGISTER_BYTE_WIDTH;
                         if ( ms < of )
                         {
                             matchedBytes -= of - ms;
@@ -205,7 +208,7 @@ vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
                     iteration ++;
 
                     // Load the next 32 bytes.
-                    char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + iteration * 32 ) );
+                    char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + iteration * REGISTER_BYTE_WIDTH ) );
 
                     patternOffset = bytesRequiredToMatch;
                 }
