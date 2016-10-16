@@ -84,43 +84,45 @@ int main(
 
     if ( fileToSearch == "" )
     {
+        auto start = std::chrono::high_resolution_clock::now();
+
         cFileFinder         ff( fileQ, dir );
-    ff.start();
+        ff.start();
+
+        auto finish = std::chrono::high_resolution_clock::now();
+        std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
+        cout << "Total records = " << fileQ.size() << endl;
     }
     else
     {
         fileQ.push_back( fileToSearch );
     }
 
-    auto start = std::chrono::high_resolution_clock::now();
-
-
-    auto finish = std::chrono::high_resolution_clock::now();
-//    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
-//    cout << "Total records = " << fileQ.size() << endl;
-
 //    string pattern  = "msc_mmap_open";
 //    string pattern  = "late_initcall_sync";
 
-#if 1
+#if 0
     patternFinder( &fileQ, pattern );
 #else
 
-    auto divider = 1;
+    auto divider = 4;
     std::vector< string > q1( fileQ.begin() + fileQ.size() / divider * 0, fileQ.begin() + fileQ.size() / divider * 1 );
-//    std::vector< string > q2( fileQ.begin() + fileQ.size() / divider * 1, fileQ.begin() + fileQ.size() / divider * 2 );
-//    std::vector< string > q3( fileQ.begin() + fileQ.size() / divider * 2, fileQ.begin() + fileQ.size() / divider * 3 );
-//    std::vector< string > q4( fileQ.begin() + fileQ.size() / divider * 3, fileQ.begin() + fileQ.size() / divider * 4 );
+    std::vector< string > q2( fileQ.begin() + fileQ.size() / divider * 1, fileQ.begin() + fileQ.size() / divider * 2 );
+    std::vector< string > q3( fileQ.begin() + fileQ.size() / divider * 2, fileQ.begin() + fileQ.size() / divider * 3 );
+    std::vector< string > q4( fileQ.begin() + fileQ.size() / divider * 3, fileQ.begin() + fileQ.size() / divider * 4 );
+//    std::vector< string > q5( fileQ.begin() + fileQ.size() / divider * 4, fileQ.begin() + fileQ.size() / divider * 5 );
 
     thread t1( patternFinder, &q1, pattern );
-//    thread t2( patternFinder, &q2, pattern );
-//    thread t3( patternFinder, &q3, pattern );
-//    thread t4( patternFinder, &q4, pattern );
+    thread t2( patternFinder, &q2, pattern );
+    thread t3( patternFinder, &q3, pattern );
+    thread t4( patternFinder, &q4, pattern );
+//    thread t5( patternFinder, &q5, pattern );
 
     t1.join();
-//    t2.join();
-//    t3.join();
-//    t4.join();
+    t2.join();
+    t3.join();
+    t4.join();
+//    t5.join();
 #endif
 
     return 0;

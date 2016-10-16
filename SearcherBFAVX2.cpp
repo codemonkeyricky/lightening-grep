@@ -138,20 +138,12 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
     {
         auto ms = std::min( MMAP_SIZE + 32, size - offset );
 
-//        char * mm = ( char * ) mmap( 0, ms, PROT_READ, MAP_SHARED, fd, offset );
-//        assert( mm != ( void * ) -1 );
         lseek( fd, offset, SEEK_SET );
-//        memset( mm, 0, sizeof( mm ) );
-        read( fd, mm, ms );
+        auto rd = read( fd, mm, ms );
+        assert( ms == rd );
 
         for ( auto i = 0; i < ms; i += 32 )
         {
-            if ( i == 2560 )
-            {
-                i += 3;
-                i -=3;
-            }
-
             auto char32     = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
             auto curr       = char32;
 
@@ -231,8 +223,6 @@ vector< SearcherI::sMatchInstance > SearcherBFAVX2::process(
 
         munmap( mm, ms );
     }
-
-//    printf( "lineCount = %d\n", ln );
 
     close( fd );
 
