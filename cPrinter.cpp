@@ -17,10 +17,14 @@
 
 using namespace std;
 
+std::mutex cPrinter::m_lock;
+
 void cPrinter::print(
     std::vector< iSearcher::sFileSummary >  & ssv
     )
 {
+    lock_guard< mutex > lock( m_lock );
+
     for ( auto & ss : ssv )
     {
         cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
