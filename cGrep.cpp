@@ -16,7 +16,7 @@ void patternFinder(
     string              pattern
     )
 {
-    cSearcherNativeAVX2  searcher;
+    cSearcherNativeAVX2  searcher( pattern );
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -25,7 +25,7 @@ void patternFinder(
     string path;
     for ( auto & path : *fileList )
     {
-        auto result = searcher.process( path, pattern );
+        auto result = searcher.process( path );
 
         if ( result.size() > 0 )
             ssv.emplace_back( path, result );

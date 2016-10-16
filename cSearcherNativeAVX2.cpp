@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <immintrin.h>
-#include "immintrin.h"
 #include <assert.h>
 
 #include <cstdio>
@@ -15,12 +13,11 @@
 
 using namespace std;
 
-#define PATTERN_SIZE_MAX    64
-#define REGISTERS_REQUIRED     ( PATTERN_SIZE_MAX / REGISTER_BYTE_WIDTH )
-
-cSearcherNativeAVX2::cSearcherNativeAVX2()
+cSearcherNativeAVX2::cSearcherNativeAVX2(
+    string &pattern
+    ) : m_pattern( pattern )
 {
-
+    populatePatternVariables();
 }
 
 
@@ -30,9 +27,35 @@ cSearcherNativeAVX2::~cSearcherNativeAVX2()
 }
 
 
+void cSearcherNativeAVX2::populatePatternVariables()
+{
+    alignas( REGISTER_BYTE_WIDTH ) char first8bitsRepeated[ REGISTER_BYTE_WIDTH ];
+    memset( first8bitsRepeated, m_pattern[ 0 ], REGISTER_BYTE_WIDTH );
+    firstLetterRepated = _mm256_loadu_si256( ( const __m256i * ) &first8bitsRepeated[ 0 ] );
+
+    alignas( REGISTER_BYTE_WIDTH ) char nl[ REGISTER_BYTE_WIDTH ];
+    memset( nl, '\n', REGISTER_BYTE_WIDTH );
+    nl256 = _mm256_loadu_si256( ( const __m256i * ) nl );
+
+    alignas( REGISTER_BYTE_WIDTH ) char sp[ REGISTER_BYTE_WIDTH ][ PATTERN_SIZE_MAX ] = { 0 };
+
+    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
+    {
+        memcpy( &( sp[ i ][ i ] ), m_pattern.c_str(), m_pattern.size() );
+    }
+
+    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
+    {
+        for ( auto j = 0; j < REGISTERS_REQUIRED; j++ )
+        {
+            sp_256[ i ][ j ] = _mm256_loadu_si256( ( const __m256i * ) &sp[ i ][ j * REGISTER_BYTE_WIDTH ] );
+        }
+    }
+}
+
+
 vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
-    string & filename,
-    string & pattern
+    string & filename
     )
 {
     auto insertRecord = [] (
@@ -88,6 +111,8 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
         lastInsertedLn = line + 1;
     };
 
+    auto pattern = m_pattern;
+
     int fd      = open( filename.c_str(), O_RDONLY );
     int size    = lseek( fd, 0, SEEK_END );
     string s    = pattern;
@@ -98,32 +123,6 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
 
     vector< sMatchInstance > summary;
     int ln = 0;
-
-    int count = 0;
-
-    alignas( REGISTER_BYTE_WIDTH ) char first8bitsRepeated[ REGISTER_BYTE_WIDTH ];
-    memset( first8bitsRepeated, pattern[ 0 ], REGISTER_BYTE_WIDTH );
-    auto firstLetterRepated = _mm256_loadu_si256( ( const __m256i * ) &first8bitsRepeated[ 0 ] );
-
-    alignas( REGISTER_BYTE_WIDTH ) char nl[ REGISTER_BYTE_WIDTH ];
-    memset( nl, '\n', REGISTER_BYTE_WIDTH );
-    auto nl256 = _mm256_loadu_si256( ( const __m256i * ) nl );
-
-    alignas( REGISTER_BYTE_WIDTH ) char sp[ REGISTER_BYTE_WIDTH ][ PATTERN_SIZE_MAX ] = { 0 };
-    __m256i sp_256[ REGISTER_BYTE_WIDTH ][ REGISTERS_REQUIRED ];
-
-    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
-    {
-        memcpy( &( sp[ i ][ i ] ), pattern.c_str(), pattern.size() );
-    }
-
-    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
-    {
-        for ( auto j = 0; j < REGISTERS_REQUIRED; j++ )
-        {
-            sp_256[ i ][ j ] = _mm256_loadu_si256( ( const __m256i * ) &sp[ i ][ j * REGISTER_BYTE_WIDTH ] );
-        }
-    }
 
     alignas( REGISTER_BYTE_WIDTH ) char mm[ MMAP_SIZE ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )

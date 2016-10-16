@@ -32,5 +32,5 @@ public:
 
     int MMAP_SIZE   = 4096 * 4;
 
-    virtual std::vector< sMatchInstance > process( std::string & filename, std::string & pattern ) = 0;
+    virtual std::vector< sMatchInstance > process( std::string & filename ) = 0;
 };
