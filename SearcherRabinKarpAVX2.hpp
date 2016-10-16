@@ -1,8 +1,8 @@
 #pragma once
 
-#include "SearcherI.hpp"
+#include "iSearcher.hpp"
 
-class SearcherAVX2 : public SearcherI
+class SearcherAVX2 : public iSearcher
 {
 public:
     SearcherAVX2();

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "SearcherI.hpp"
+#include "iSearcher.hpp"
 
-class SearcherCPU : public SearcherI
+class SearcherCPU : public iSearcher
 {
 public:
     SearcherCPU();

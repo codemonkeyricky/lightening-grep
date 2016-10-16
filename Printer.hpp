@@ -1,10 +1,10 @@
 #pragma once
 
-#include "SearcherI.hpp"
+#include "iSearcher.hpp"
 
 namespace Printer
 {
     void FileSummary(
-        std::vector< SearcherI::sFileSummary >  & ssv
+        std::vector< iSearcher::sFileSummary >  & ssv
         );
 };

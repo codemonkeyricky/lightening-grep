@@ -1,4 +1,4 @@
-#include "SearcherNativeAVX2.hpp"
+#include "cSearcherNativeAVX2.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -15,19 +15,19 @@
 
 using namespace std;
 
-SearcherNativeAVX2::SearcherNativeAVX2()
+cSearcherNativeAVX2::cSearcherNativeAVX2()
 {
 
 }
 
 
-SearcherNativeAVX2::~SearcherNativeAVX2()
+cSearcherNativeAVX2::~cSearcherNativeAVX2()
 {
 
 }
 
 
-vector< SearcherI::sMatchInstance > SearcherNativeAVX2::process(
+vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
     string & filename,
     string & pattern
     )

@@ -8,7 +8,7 @@ namespace Printer
 {
 
 void FileSummary(
-    std::vector< SearcherI::sFileSummary >  & ssv
+    std::vector< iSearcher::sFileSummary >  & ssv
     )
 {
     for ( auto & ss : ssv )

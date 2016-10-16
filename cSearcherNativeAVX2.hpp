@@ -1,12 +1,12 @@
 #pragma once
 
-#include "SearcherI.hpp"
+#include "iSearcher.hpp"
 
-class SearcherNativeAVX2 : public SearcherI
+class cSearcherNativeAVX2 : public iSearcher
 {
 public:
-    SearcherNativeAVX2();
-    ~SearcherNativeAVX2();
+    cSearcherNativeAVX2();
+    ~cSearcherNativeAVX2();
 
     constexpr static int REGISTER_BIT_WIDTH    = 256;
     constexpr static int REGISTER_BYTE_WIDTH   = REGISTER_BIT_WIDTH / 8;

@@ -11,11 +11,11 @@
 #include <thread>
 #include <atomic>
 
-#include "SearcherNativeAVX2.hpp"
 #include "SearcherRabinKarpAVX2.hpp"
 #include "cFileFinder.hpp"
 #include "Printer.hpp"
 #include "cGrep.hpp"
+#include "cSearcherNativeAVX2.hpp"
 
 using namespace std;
 

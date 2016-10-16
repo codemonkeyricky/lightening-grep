@@ -5,8 +5,8 @@
 
 #include "cGrep.hpp"
 #include "cFileFinder.hpp"
+#include "cSearcherNativeAVX2.hpp"
 #include "Printer.hpp"
-#include "SearcherNativeAVX2.hpp"
 
 using namespace std;
 
@@ -15,11 +15,11 @@ void patternFinder(
     string              pattern
     )
 {
-    SearcherNativeAVX2  searcher;
+    cSearcherNativeAVX2  searcher;
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    vector< SearcherI::sFileSummary > ssv;
+    vector< iSearcher::sFileSummary > ssv;
 
     string path;
     for ( auto & path : *fileList )
