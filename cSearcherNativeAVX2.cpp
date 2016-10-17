@@ -54,72 +54,72 @@ void cSearcherNativeAVX2::populatePatternVariables()
 }
 
 
+
+void cSearcherNativeAVX2::insertRecord(
+    const char   *curr,
+    const char   *pattern,
+    int     currline,
+    vector< sMatchInstance > &summary
+    )
+{
+    // Pattern found.
+
+    // Switch to scalar code for better maintenance.
+
+    static int lastInsertedLn = -1;
+
+    auto pos = strstr( curr, pattern );
+
+    if ( pos == 0 )
+        return;
+
+    // Find the newlines preceding the pattern.
+    int line = currline;
+    while ( curr++ != pos )
+        line += ( *curr == '\n' );
+
+    auto start = pos;
+    auto end = pos;
+
+    // TODO: If the line straddles between page boundaries the code would
+    // crash because the code below cannot find new lines.
+
+    // Find the previous newline.
+    while ( *(--start) != '\n' )
+    { }
+    start++;
+
+    // Find the end newline.
+    while ( *(++end) != '\n' )
+    { }
+
+    auto content = string( start, end - start );
+
+    // Multiple matches on one line only needs to be inserted once.
+    if ( line + 1 != lastInsertedLn )
+    {
+        summary.emplace_back(
+            line + 1,
+            pos - start,
+            content
+        );
+    }
+
+    lastInsertedLn = line + 1;
+}
+
+
 vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
     string & filename
     )
 {
-    auto insertRecord = [] (
-        const char   *curr,
-        const char   *pattern,
-        int     currline,
-        vector< sMatchInstance > &summary
-        )
-    {
-        // Pattern found.
-
-        // Switch to scalar code for better maintenance.
-
-        static int lastInsertedLn = -1;
-
-        auto pos = strstr( curr, pattern );
-
-        if ( pos == 0 )
-            return;
-
-        // Find the newlines preceding the pattern.
-        int line = currline;
-        while ( curr++ != pos )
-            line += ( *curr == '\n' );
-
-        auto start = pos;
-        auto end = pos;
-
-        // TODO: If the line straddles between page boundaries the code would
-        // crash because the code below cannot find new lines.
-
-        // Find the previous newline.
-        while ( *(--start) != '\n' )
-        { }
-        start++;
-
-        // Find the end newline.
-        while ( *(++end) != '\n' )
-        { }
-
-        auto content = string( start, end - start );
-
-        // Multiple matches on one line only needs to be inserted once.
-        if ( line + 1 != lastInsertedLn )
-        {
-            summary.emplace_back(
-                line + 1,
-                pos - start,
-                content
-            );
-        }
-
-        lastInsertedLn = line + 1;
-    };
-
-    auto pattern = m_pattern;
-
-    int fd      = open( filename.c_str(), O_RDONLY );
-    int size    = lseek( fd, 0, SEEK_END );
-    string s    = pattern;
-    int patternSize = pattern.size();
+        int fd          = open( filename.c_str(), O_RDONLY );
+    int size        = lseek( fd, 0, SEEK_END );
+    string s        = m_pattern;
+    int patternSize = m_pattern.size();
 
     // Limit for now.
-    assert( pattern.size() <= REGISTER_BYTE_WIDTH );
+    assert( m_pattern.size() <= REGISTER_BYTE_WIDTH );
 
     vector< sMatchInstance > summary;
     int ln = 0;
@@ -154,25 +154,28 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
                     auto r              = _mm256_cmpeq_epi8( char32, sp_256[ patternOffset ][ iteration ] );
 
                     auto m2             = _mm256_movemask_epi8( r );
-                    int matchedBytes    = _mm_popcnt_u32( m2 );
+                    int bytesMatched    = _mm_popcnt_u32( m2 );
 
                     // Find matching letters required.
                     int bytesRemaining = patternSize - bytesCompared;
 
-                    int bytesRequiredToMatch = ( iteration == 0 ) ?
-                        std::min( REGISTER_BYTE_WIDTH - patternOffset, patternSize ) : bytesRemaining;
+                    int regWidth = REGISTER_BYTE_WIDTH;
+                    int bytesToMatch =
+                        ( iteration == 0 ) ?
+                            std::min( regWidth - patternOffset, patternSize ) :
+                            std::min( regWidth, bytesRemaining );
 
                     // Failed to match.
-                    if ( matchedBytes < bytesRequiredToMatch )
+                    if ( bytesMatched < bytesToMatch )
                     {
                         break;
                     }
-                    else if ( matchedBytes > bytesRequiredToMatch )
+                    else if ( bytesMatched > bytesToMatch )
                     {
                         auto of = i + iteration * REGISTER_BYTE_WIDTH + REGISTER_BYTE_WIDTH;
                         if ( ms < of )
                         {
-                            matchedBytes -= of - ms;
+                            bytesMatched -= of - ms;
 
                             // Loaded beyond end of file. False positives may hit due to null characters.
                             // Adjust matchedBytes accordingly.
@@ -180,20 +183,18 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
                     }
 
                     // Accounting.
-                    bytesCompared += matchedBytes;
+                    bytesCompared += bytesMatched;
 
                     // If all bytes match, then we found the string.
                     if ( bytesCompared == patternSize )
                     {
-                        insertRecord( mm + i, pattern.c_str(), ln, summary );
+                        insertRecord( mm + i, m_pattern.c_str(), ln, summary );
 
                         break;
                     }
 
                     // Load the next 32 bytes.
                     char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + ( ++ iteration ) * REGISTER_BYTE_WIDTH ) );
-
-//                    patternOffset = bytesRequiredToMatch;
                 }
 
                 // Remove the lsb from mask.
@@ -206,8 +207,6 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
 
             ln  += lines;
         }
-
-        munmap( mm, ms );
     }
 
     close( fd );

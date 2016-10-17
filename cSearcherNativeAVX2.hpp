@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <immintrin.h>
 
 #include "iSearcher.hpp"
@@ -20,6 +21,7 @@ public:
 
 private:
     void populatePatternVariables();
+    void insertRecord( const char *, const char *, int, std::vector< sMatchInstance > & );
 
     __m256i firstLetterRepated;
     __m256i nl256;

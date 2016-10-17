@@ -1,3 +1,6 @@
+
+#include <unistd.h>
+
 #include <string>
 #include <iostream>
 #include <chrono>
@@ -85,17 +88,17 @@ void cGrep::startJobs()
     int workerThreads = 4;
     vector< thread >            pool;
     vector< vector< string > >  jobs;
-    int jobLen = fileQ.size() / workerThreads;
+    int jobsPerWorker = fileQ.size() / workerThreads;
     for ( auto i = 0; i < workerThreads; i ++ )
     {
-        auto start = fileQ.begin() + jobLen * i;
-        auto end = ( i != workerThreads - 1 ) ?
-            ( fileQ.begin() + jobLen * ( i + 1 ) ) :
+        auto start = fileQ.begin() + jobsPerWorker * i;
+        auto end = ( i != ( workerThreads - 1 ) ) ?
+            ( fileQ.begin() + jobsPerWorker * ( i + 1 ) ) :
             fileQ.end();
 
         jobs.emplace_back( start, end );
 
-        pool.push_back( thread( patternFinder, &jobs.back(), m_pattern ) );
+        pool.push_back( thread( patternFinder, &( jobs.back() ), m_pattern ) );
     }
 
     for ( auto & thread : pool )
