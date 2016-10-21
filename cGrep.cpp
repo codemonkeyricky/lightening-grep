@@ -15,7 +15,8 @@
 using namespace std;
 
 void patternFinder(
-    vector< string >   * fileList,
+    int                 workerId,
+    vector< string >   *fileList,
     string              pattern
     )
 {
@@ -38,7 +39,10 @@ void patternFinder(
 
 #if 0
     std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
-    cout << "Total records processed = " << count << endl;
+
+    cout << "Worker ID = " << workerId << " " <<
+        "Records processed = " << fileList->size() << " "
+        "Match found = " << ssv.size() << endl;
 #endif
 
     cPrinter::print( ssv );
@@ -88,6 +92,7 @@ void cGrep::startJobs()
     int workerThreads = 4;
     vector< thread >            pool;
     vector< vector< string > >  jobs;
+    jobs.reserve( workerThreads );
     int jobsPerWorker = fileQ.size() / workerThreads;
     for ( auto i = 0; i < workerThreads; i ++ )
     {
@@ -98,7 +103,7 @@ void cGrep::startJobs()
 
         jobs.emplace_back( start, end );
 
-        pool.push_back( thread( patternFinder, &( jobs.back() ), m_pattern ) );
+        pool.push_back( thread( patternFinder, i, &( jobs.back() ), m_pattern ) );
     }
 
     for ( auto & thread : pool )
