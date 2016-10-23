@@ -1,4 +1,5 @@
 
+#include <cpuid.h>
 #include <unistd.h>
 
 #include <string>
@@ -14,14 +15,22 @@
 
 using namespace std;
 
-void patternFinder(
+bool cGrep::avx_support = 0;
+bool cGrep::avx2_support = 0;
+
+void cGrep::patternFinder(
     int                 workerId,
     vector< string >   *fileList,
     string              pattern
     )
 {
-    cSearcherNative< AVX2 >  searcher( pattern );
-    cSearcherNative< AVX >  searcher2( pattern );
+    iSearcher  *searcher;
+    cSearcherNative< AVX >  savx( pattern );
+    cSearcherNative< AVX2 >  savx2( pattern );
+
+    searcher = ( avx2_support ) ?
+        static_cast< iSearcher * >( &savx2 ) :
+        static_cast< iSearcher * >( &savx );
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -30,7 +39,7 @@ void patternFinder(
     string path;
     for ( auto & path : *fileList )
     {
-        auto result = searcher.process( path );
+        auto result = searcher->process( path );
 
         if ( result.size() > 0 )
             ssv.emplace_back( path, result );
@@ -57,7 +66,22 @@ cGrep::cGrep(
 : m_filePath( filePath ),
   m_pattern( pattern )
 {
+    unsigned int eax, ebx, ecx, edx;
 
+//    __get_cpuid( 1, &eax, &ebx, &ecx, &edx );
+//    if ( ecx & ( 1 << 28 ) )
+//    {
+//        avx_support = true;
+//    }
+//
+//    __get_cpuid( 7, &eax, &ebx, &ecx, &edx );
+//    if ( ebx & ( 1 << 5 ) )
+//    {
+//        avx2_support = true;
+//    }
+
+    avx_support     = __builtin_cpu_supports( "avx" );
+    avx2_support    = __builtin_cpu_supports( "avx2" );
 }
 
 
