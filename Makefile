@@ -1,4 +1,4 @@
-CXX 		:= g++-5
+CXX 		:= g++
 # CXX 		:= clang++-3.6
 
 CXXFLAGS 	:= -mavx2

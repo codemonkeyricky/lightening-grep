@@ -32,26 +32,26 @@ cSearcherNative<T>::~cSearcherNative()
 template< typename T >
 void cSearcherNative<T>::populatePatternVariables()
 {
-    alignas( ALIGNMENT ) char first8bitsRepeated[ REGISTER_BYTE_WIDTH ];
-    memset( first8bitsRepeated, m_pattern[ 0 ], REGISTER_BYTE_WIDTH );
-    firstLetterRepated = vector_load( ( const T * ) &first8bitsRepeated[ 0 ] );
+    alignas( ALIGNMENT ) char first8bitsRepeated[ simd_traits< T >::size ];
+    memset( first8bitsRepeated, m_pattern[ 0 ], simd_traits< T >::size );
+    firstLetterRepated = vector_load( ( const vec_type * ) &first8bitsRepeated[ 0 ] );
 
-    alignas( ALIGNMENT ) char nl[ REGISTER_BYTE_WIDTH ];
-    memset( nl, '\n', REGISTER_BYTE_WIDTH );
-    nl_vec = vector_load( ( const T * ) nl );
+    alignas( ALIGNMENT ) char nl[ simd_traits< T >::size ];
+    memset( nl, '\n', simd_traits< T >::size );
+    nl_vec = vector_load( ( const vec_type * ) nl );
 
-    alignas( ALIGNMENT ) char sp[ REGISTER_BYTE_WIDTH ][ PATTERN_SIZE_MAX ] = { 0 };
+    alignas( ALIGNMENT ) char sp[ simd_traits< T >::size ][ PATTERN_SIZE_MAX ] = { 0 };
 
-    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
+    for ( auto i = 0; i < simd_traits< T >::size; i++ )
     {
         memcpy( &( sp[ i ][ i ] ), m_pattern.c_str(), m_pattern.size() );
     }
 
-    for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
+    for ( auto i = 0; i < simd_traits< T >::size; i++ )
     {
-        for ( auto j = 0; j < REGISTERS_REQUIRED; j++ )
+        for ( auto j = 0; j < ( PATTERN_SIZE_MAX / simd_traits< T >::size ); j++ )
         {
-            sp_vec[ i ][ j ] = vector_load( ( const T * ) &sp[ i ][ j * REGISTER_BYTE_WIDTH ] );
+            sp_vec[ i ][ j ] = vector_load( ( const vec_type * ) &sp[ i ][ j * simd_traits< T >::size ] );
         }
     }
 }
@@ -132,15 +132,15 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
     alignas( ALIGNMENT ) char mm[ MMAP_SIZE ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
-        auto ms = std::min( MMAP_SIZE + REGISTER_BYTE_WIDTH, ( long unsigned ) ( size - offset ) );
+        auto ms = std::min( MMAP_SIZE + simd_traits< T >::size, ( long unsigned ) ( size - offset ) );
 
         lseek( fd, offset, SEEK_SET );
         auto rd = read( fd, mm, ms );
         assert( ms == rd );
 
-        for ( auto i = 0; i < ms; i += REGISTER_BYTE_WIDTH )
+        for ( auto i = 0; i < ms; i += simd_traits< T >::size )
         {
-            auto char32     = vector_load( ( const T * ) ( mm + i ) );
+            auto char32     = vector_load( ( const vec_type * ) ( mm + i ) );
             auto curr       = char32;
 
             auto match      = vector_compare( char32, firstLetterRepated );
@@ -164,7 +164,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
                     // Find matching letters required.
                     int bytesRemaining = patternSize - bytesCompared;
 
-                    int regWidth = REGISTER_BYTE_WIDTH;
+                    int regWidth = simd_traits< T >::size;
                     int bytesToMatch =
                         ( iteration == 0 ) ?
                             std::min( regWidth - patternOffset, patternSize ) :
@@ -177,7 +177,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
                     }
                     else if ( bytesMatched > bytesToMatch )
                     {
-                        auto of = i + iteration * REGISTER_BYTE_WIDTH + REGISTER_BYTE_WIDTH;
+                        auto of = i + iteration * simd_traits< T >::size + simd_traits< T >::size;
                         if ( ms < of )
                         {
                             bytesMatched -= of - ms;
@@ -199,7 +199,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
                     }
 
                     // Load the next 32 bytes.
-                    char32  = vector_load( ( const T * ) ( mm + i + ( ++ iteration ) * REGISTER_BYTE_WIDTH ) );
+                    char32  = vector_load( ( const vec_type * ) ( mm + i + ( ++ iteration ) * simd_traits< T >::size ) );
                 }
 
                 // Remove the lsb from mask.
@@ -221,7 +221,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
 
 
 template<>
-inline __m128i cSearcherNative< __m128i >::vector_load(
+inline __m128i cSearcherNative< AVX >::vector_load(
     const __m128i * input
     )
 {
@@ -230,7 +230,7 @@ inline __m128i cSearcherNative< __m128i >::vector_load(
 
 
 template<>
-inline __m128i cSearcherNative< __m128i >::vector_compare(
+inline __m128i cSearcherNative< AVX >::vector_compare(
     __m128i & a,
     __m128i & b
     )
@@ -240,7 +240,7 @@ inline __m128i cSearcherNative< __m128i >::vector_compare(
 
 
 template<>
-inline unsigned int cSearcherNative< __m128i >::vector_to_bitmask(
+inline unsigned int cSearcherNative< AVX >::vector_to_bitmask(
     __m128i & input
     )
 {
@@ -249,7 +249,7 @@ inline unsigned int cSearcherNative< __m128i >::vector_to_bitmask(
 
 
 template<>
-inline unsigned int cSearcherNative< __m128i >::int_bits_count(
+inline unsigned int cSearcherNative< AVX >::int_bits_count(
     unsigned int & input
     )
 {
@@ -258,7 +258,7 @@ inline unsigned int cSearcherNative< __m128i >::int_bits_count(
 
 
 template<>
-inline __m256i cSearcherNative< __m256i >::vector_load(
+inline __m256i cSearcherNative< AVX2 >::vector_load(
     const __m256i * input
     )
 {
@@ -267,7 +267,7 @@ inline __m256i cSearcherNative< __m256i >::vector_load(
 
 //
 template<>
-inline __m256i cSearcherNative< __m256i >::vector_compare(
+inline __m256i cSearcherNative< AVX2 >::vector_compare(
     __m256i & a,
     __m256i & b
     )
@@ -277,7 +277,7 @@ inline __m256i cSearcherNative< __m256i >::vector_compare(
 
 
 template<>
-inline unsigned int cSearcherNative< __m256i >::vector_to_bitmask(
+inline unsigned int cSearcherNative< AVX2 >::vector_to_bitmask(
     __m256i & input
     )
 {
@@ -286,7 +286,7 @@ inline unsigned int cSearcherNative< __m256i >::vector_to_bitmask(
 
 
 template<>
-inline unsigned int cSearcherNative< __m256i >::int_bits_count(
+inline unsigned int cSearcherNative< AVX2 >::int_bits_count(
     unsigned int & input
     )
 {
@@ -294,5 +294,5 @@ inline unsigned int cSearcherNative< __m256i >::int_bits_count(
 }
 
 
-template class cSearcherNative< __m128i >;
-template class cSearcherNative< __m256i >;
+template class cSearcherNative< AVX >;
+template class cSearcherNative< AVX2 >;

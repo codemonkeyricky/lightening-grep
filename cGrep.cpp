@@ -20,8 +20,8 @@ void patternFinder(
     string              pattern
     )
 {
-    cSearcherNative< __m256i >  searcher( pattern );
-    cSearcherNative< __m128i >  searcher2( pattern );
+    cSearcherNative< AVX2 >  searcher( pattern );
+    cSearcherNative< AVX >  searcher2( pattern );
 
     auto start = std::chrono::high_resolution_clock::now();
 
