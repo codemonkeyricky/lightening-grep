@@ -10,7 +10,7 @@
 
 #include "cFileFinder.hpp"
 #include "cPrinter.hpp"
-#include "cSearcherNativeAVX2.hpp"
+#include "cSearcherNative.hpp"
 
 using namespace std;
 
@@ -20,8 +20,8 @@ void patternFinder(
     string              pattern
     )
 {
-    cSearcherNativeAVX2< __m256i >  searcher( pattern );
-    cSearcherNativeAVX2< __m128i >  searcher2( pattern );
+    cSearcherNative< __m256i >  searcher( pattern );
+    cSearcherNative< __m128i >  searcher2( pattern );
 
     auto start = std::chrono::high_resolution_clock::now();
 

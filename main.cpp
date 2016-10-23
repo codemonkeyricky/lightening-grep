@@ -15,7 +15,7 @@
 #include "cFileFinder.hpp"
 #include "cGrep.hpp"
 #include "cPrinter.hpp"
-#include "cSearcherNativeAVX2.hpp"
+#include "cSearcherNative.hpp"
 
 using namespace std;
 
