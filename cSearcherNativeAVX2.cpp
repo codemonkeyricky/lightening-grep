@@ -13,7 +13,8 @@
 
 using namespace std;
 
-cSearcherNativeAVX2::cSearcherNativeAVX2(
+template< typename T >
+cSearcherNativeAVX2<T>::cSearcherNativeAVX2(
     string &pattern
     ) : m_pattern( pattern )
 {
@@ -21,23 +22,25 @@ cSearcherNativeAVX2::cSearcherNativeAVX2(
 }
 
 
-cSearcherNativeAVX2::~cSearcherNativeAVX2()
+template< typename T >
+cSearcherNativeAVX2<T>::~cSearcherNativeAVX2()
 {
 
 }
 
 
-void cSearcherNativeAVX2::populatePatternVariables()
+template< typename T >
+void cSearcherNativeAVX2<T>::populatePatternVariables()
 {
-    alignas( REGISTER_BYTE_WIDTH ) char first8bitsRepeated[ REGISTER_BYTE_WIDTH ];
+    alignas( ALIGNMENT ) char first8bitsRepeated[ REGISTER_BYTE_WIDTH ];
     memset( first8bitsRepeated, m_pattern[ 0 ], REGISTER_BYTE_WIDTH );
-    firstLetterRepated = _mm256_loadu_si256( ( const __m256i * ) &first8bitsRepeated[ 0 ] );
+    firstLetterRepated = vector_load( ( const T * ) &first8bitsRepeated[ 0 ] );
 
-    alignas( REGISTER_BYTE_WIDTH ) char nl[ REGISTER_BYTE_WIDTH ];
+    alignas( ALIGNMENT ) char nl[ REGISTER_BYTE_WIDTH ];
     memset( nl, '\n', REGISTER_BYTE_WIDTH );
-    nl256 = _mm256_loadu_si256( ( const __m256i * ) nl );
+    nl_vec = vector_load( ( const T * ) nl );
 
-    alignas( REGISTER_BYTE_WIDTH ) char sp[ REGISTER_BYTE_WIDTH ][ PATTERN_SIZE_MAX ] = { 0 };
+    alignas( ALIGNMENT ) char sp[ REGISTER_BYTE_WIDTH ][ PATTERN_SIZE_MAX ] = { 0 };
 
     for ( auto i = 0; i < REGISTER_BYTE_WIDTH; i++ )
     {
@@ -48,18 +51,19 @@ void cSearcherNativeAVX2::populatePatternVariables()
     {
         for ( auto j = 0; j < REGISTERS_REQUIRED; j++ )
         {
-            sp_256[ i ][ j ] = _mm256_loadu_si256( ( const __m256i * ) &sp[ i ][ j * REGISTER_BYTE_WIDTH ] );
+            sp_vec[ i ][ j ] = vector_load( ( const T * ) &sp[ i ][ j * REGISTER_BYTE_WIDTH ] );
         }
     }
 }
 
 
 
-void cSearcherNativeAVX2::insertRecord(
-    const char   *curr,
-    const char   *pattern,
-    int     currline,
-    vector< sMatchInstance > &summary
+template< typename T >
+void cSearcherNativeAVX2<T>::insertRecord(
+    const char                 *curr,
+    const char                 *pattern,
+    int                         currline,
+    vector< sMatchInstance >   &summary
     )
 {
     // Pattern found.
@@ -109,25 +113,26 @@ void cSearcherNativeAVX2::insertRecord(
 }
 
 
-vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
+template< typename T >
+vector< iSearcher::sMatchInstance > cSearcherNativeAVX2<T>::process(
     string & filename
     )
 {
-        int fd          = open( filename.c_str(), O_RDONLY );
+    int fd          = open( filename.c_str(), O_RDONLY );
     int size        = lseek( fd, 0, SEEK_END );
     string s        = m_pattern;
     int patternSize = m_pattern.size();
 
     // Limit for now.
-    assert( m_pattern.size() <= REGISTER_BYTE_WIDTH );
+    assert( m_pattern.size() <= PATTERN_SIZE_MAX );
 
     vector< sMatchInstance > summary;
     int ln = 0;
 
-    alignas( REGISTER_BYTE_WIDTH ) char mm[ MMAP_SIZE ];
+    alignas( ALIGNMENT ) char mm[ MMAP_SIZE ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
-        auto ms = std::min( MMAP_SIZE + REGISTER_BYTE_WIDTH, size - offset );
+        auto ms = std::min( MMAP_SIZE + REGISTER_BYTE_WIDTH, ( long unsigned ) ( size - offset ) );
 
         lseek( fd, offset, SEEK_SET );
         auto rd = read( fd, mm, ms );
@@ -135,11 +140,11 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
 
         for ( auto i = 0; i < ms; i += REGISTER_BYTE_WIDTH )
         {
-            auto char32     = _mm256_load_si256( ( const __m256i * ) ( mm + i ) );
+            auto char32     = vector_load( ( const T * ) ( mm + i ) );
             auto curr       = char32;
 
-            auto match      = _mm256_cmpeq_epi8( char32, firstLetterRepated );
-            auto matchMask  = _mm256_movemask_epi8( match );
+            auto match      = vector_compare( char32, firstLetterRepated );
+            auto matchMask  = vector_to_bitmask( match );
 
             // Iterate through all mask bits.
             while ( matchMask )
@@ -151,10 +156,10 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
                 int iteration       = 0;
                 while ( bytesCompared < patternSize )
                 {
-                    auto r              = _mm256_cmpeq_epi8( char32, sp_256[ patternOffset ][ iteration ] );
+                    auto r              = vector_compare( char32, sp_vec[ patternOffset ][ iteration ] );
 
-                    auto m2             = _mm256_movemask_epi8( r );
-                    int bytesMatched    = _mm_popcnt_u32( m2 );
+                    auto m2             = vector_to_bitmask( r );
+                    int bytesMatched    = int_bits_count( m2 );
 
                     // Find matching letters required.
                     int bytesRemaining = patternSize - bytesCompared;
@@ -194,16 +199,16 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
                     }
 
                     // Load the next 32 bytes.
-                    char32  = _mm256_load_si256( ( const __m256i * ) ( mm + i + ( ++ iteration ) * REGISTER_BYTE_WIDTH ) );
+                    char32  = vector_load( ( const T * ) ( mm + i + ( ++ iteration ) * REGISTER_BYTE_WIDTH ) );
                 }
 
                 // Remove the lsb from mask.
                 matchMask   &= matchMask - 1;
             }
 
-            auto nls    = _mm256_cmpeq_epi8( curr, nl256 );
-            auto nlm    = _mm256_movemask_epi8( nls );
-            auto lines  = _mm_popcnt_u32( nlm );
+            auto nls    = vector_compare( curr, nl_vec );
+            auto nlm    = vector_to_bitmask( nls );
+            auto lines  = int_bits_count( nlm );
 
             ln  += lines;
         }
@@ -213,3 +218,81 @@ vector< iSearcher::sMatchInstance > cSearcherNativeAVX2::process(
 
     return summary;
 }
+
+
+template<>
+inline __m128i cSearcherNativeAVX2< __m128i >::vector_load(
+    const __m128i * input
+    )
+{
+    return _mm_load_si128( input );
+}
+
+
+template<>
+inline __m128i cSearcherNativeAVX2< __m128i >::vector_compare(
+    __m128i & a,
+    __m128i & b
+    )
+{
+    return _mm_cmpeq_epi8( a, b );
+}
+
+
+template<>
+inline unsigned int cSearcherNativeAVX2< __m128i >::vector_to_bitmask(
+    __m128i & input
+    )
+{
+    return _mm_movemask_epi8( input );
+}
+
+
+template<>
+inline unsigned int cSearcherNativeAVX2< __m128i >::int_bits_count(
+    unsigned int & input
+    )
+{
+    return _mm_popcnt_u32( input );
+}
+
+
+template<>
+inline __m256i cSearcherNativeAVX2< __m256i >::vector_load(
+    const __m256i * input
+    )
+{
+    return _mm256_load_si256( input );
+}
+
+//
+template<>
+inline __m256i cSearcherNativeAVX2< __m256i >::vector_compare(
+    __m256i & a,
+    __m256i & b
+    )
+{
+    return _mm256_cmpeq_epi8( a, b );
+}
+
+
+template<>
+inline unsigned int cSearcherNativeAVX2< __m256i >::vector_to_bitmask(
+    __m256i & input
+    )
+{
+    return _mm256_movemask_epi8( input );
+}
+
+
+template<>
+inline unsigned int cSearcherNativeAVX2< __m256i >::int_bits_count(
+    unsigned int & input
+    )
+{
+    return _mm_popcnt_u32( input );
+}
+
+
+template class cSearcherNativeAVX2< __m128i >;
+template class cSearcherNativeAVX2< __m256i >;
