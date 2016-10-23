@@ -13,7 +13,7 @@
 
 using namespace std;
 
-template< typename T >
+template< class T >
 cSearcherNative<T>::cSearcherNative(
     string &pattern
     ) : m_pattern( pattern )
@@ -22,14 +22,14 @@ cSearcherNative<T>::cSearcherNative(
 }
 
 
-template< typename T >
+template< class T >
 cSearcherNative<T>::~cSearcherNative()
 {
 
 }
 
 
-template< typename T >
+template< class T >
 void cSearcherNative<T>::populatePatternVariables()
 {
     alignas( ALIGNMENT ) char first8bitsRepeated[ simd_traits< T >::size ];
@@ -58,7 +58,7 @@ void cSearcherNative<T>::populatePatternVariables()
 
 
 
-template< typename T >
+template< class T >
 void cSearcherNative<T>::insertRecord(
     const char                 *curr,
     const char                 *pattern,
@@ -113,7 +113,7 @@ void cSearcherNative<T>::insertRecord(
 }
 
 
-template< typename T >
+template< class T >
 vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
     string & filename
     )

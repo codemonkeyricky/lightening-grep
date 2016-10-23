@@ -35,7 +35,7 @@ struct simd_traits< AVX2 >
 };
 
 
-template< typename T >
+template< class T >
 class cSearcherNative : public iSearcher
 {
 public:
