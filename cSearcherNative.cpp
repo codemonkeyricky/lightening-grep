@@ -60,6 +60,8 @@ void cSearcherNative<T>::populatePatternVariables()
 
 template< class T >
 void cSearcherNative<T>::insertRecord(
+    const char                 *mmap,
+    int                         mmapSize,
     const char                 *curr,
     const char                 *pattern,
     int                         currline,
@@ -85,17 +87,16 @@ void cSearcherNative<T>::insertRecord(
     auto start = pos;
     auto end = pos;
 
-    // TODO: If the line straddles between page boundaries the code would
-    // crash because the code below cannot find new lines.
-
     // Find the previous newline.
-    while ( *(--start) != '\n' )
-    { }
-    start++;
+    while ( start != mmap && *(--start) != '\n' ) { }
+    if ( start != mmap ) 
+        start++;
 
     // Find the end newline.
-    while ( *(++end) != '\n' )
-    { }
+    while ( ( end != ( mmap + mmapSize ) ) && *(++end) != '\n' ) { }
+
+    // TODO: If the line straddles between page boundaries the code will not
+    // find the real EOL.
 
     auto content = string( start, end - start );
 
@@ -193,7 +194,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
                     // If all bytes match, then we found the string.
                     if ( bytesCompared == patternSize )
                     {
-                        insertRecord( mm + i, m_pattern.c_str(), ln, summary );
+                        insertRecord( mm, MMAP_SIZE, mm + i, m_pattern.c_str(), ln, summary );
 
                         break;
                     }

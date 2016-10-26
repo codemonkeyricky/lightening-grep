@@ -57,7 +57,7 @@ public:
 private:
 
     void populatePatternVariables();
-    void insertRecord( const char *, const char *, int, std::vector< sMatchInstance > & );
+    void insertRecord( const char *, int, const char *, const char *, int, std::vector< sMatchInstance > & );
 
     vec_type firstLetterRepated;
     vec_type nl_vec;
