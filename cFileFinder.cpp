@@ -8,8 +8,8 @@
 using namespace std;
 
 cFileFinder::cFileFinder(
-    std::vector< std::string >   &q,
-    std::string             &p
+    cQueue< std::string >  &q,
+    std::string            &p
     )
 : m_fileList( q ),
   m_rootPath( p )
@@ -22,6 +22,8 @@ cFileFinder::~cFileFinder()
 
 }
 
+
+extern int g_done;
 
 void cFileFinder::start()
 {
@@ -108,10 +110,12 @@ void cFileFinder::start()
 
 //                cout << "### file : " << to_add << endl;
 
-                m_fileList.push_back( to_add );
+                m_fileList.push( to_add );
             }
         }
 
         closedir( dirp );
     }
+
+    g_done = 1;
 }

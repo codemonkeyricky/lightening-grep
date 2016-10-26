@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "cQueue.hpp"
+
 class cGrep
 {
 public:
@@ -15,12 +17,12 @@ public:
     static bool avx2_support;
 
 private:
-    void populateJobQueue();
-    void startJobs();
+    void startJobsProducer();
+    void startJobsConsumer();
 
-    static void patternFinder( int, std::vector< std::string > *, std::string );
+    static void patternFinder( int, cQueue< std::string > *, std::string );
 
-    std::vector< std::string >    fileQ;
+    cQueue< std::string >       fileQ;
 
     std::string m_filePath;
     std::string m_pattern;

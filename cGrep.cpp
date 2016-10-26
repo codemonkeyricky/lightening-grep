@@ -18,9 +18,11 @@ using namespace std;
 bool cGrep::avx_support = 0;
 bool cGrep::avx2_support = 0;
 
+int g_done = 0;
+
 void cGrep::patternFinder(
     int                 workerId,
-    vector< string >   *fileList,
+    cQueue< string >   *fileList,
     string              pattern
     )
 {
@@ -36,13 +38,20 @@ void cGrep::patternFinder(
 
     vector< iSearcher::sFileSummary > ssv;
 
-    string path;
-    for ( auto & path : *fileList )
+    while ( !g_done || fileList->size() > 0 )
     {
-        auto result = searcher->process( path );
+        string path;
+        while ( fileList->pop( path ) )
+        {
+            auto result = searcher->process( path );
 
-        if ( result.size() > 0 )
-            ssv.emplace_back( path, result );
+            if ( result.size() > 0 )
+            {
+                ssv.emplace_back( path, result );
+            }
+        }
+
+        usleep( 1 );
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
@@ -91,11 +100,11 @@ cGrep::~cGrep()
 }
 
 
-void cGrep::populateJobQueue()
+void cGrep::startJobsProducer()
 {
     if ( m_filePath != "" )
     {
-        fileQ.push_back( m_filePath );
+        fileQ.push( m_filePath );
 
         return;
     }
@@ -107,28 +116,20 @@ void cGrep::populateJobQueue()
     ff.start();
 
     auto finish = std::chrono::high_resolution_clock::now();
-    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
-    cout << "Total records = " << fileQ.size() << endl;
+//    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
+//    cout << "Total records = " << fileQ.size() << endl;
 }
 
 
-void cGrep::startJobs()
+void cGrep::startJobsConsumer()
 {
     int workerThreads = 4;
     vector< thread >            pool;
     vector< vector< string > >  jobs;
-    jobs.reserve( workerThreads );
-    int jobsPerWorker = fileQ.size() / workerThreads;
+
     for ( auto i = 0; i < workerThreads; i ++ )
     {
-        auto start = fileQ.begin() + jobsPerWorker * i;
-        auto end = ( i != ( workerThreads - 1 ) ) ?
-            ( fileQ.begin() + jobsPerWorker * ( i + 1 ) ) :
-            fileQ.end();
-
-        jobs.emplace_back( start, end );
-
-        pool.push_back( thread( patternFinder, i, &( jobs.back() ), m_pattern ) );
+        pool.push_back( thread( patternFinder, i, &fileQ, m_pattern ) );
     }
 
     for ( auto & thread : pool )
@@ -140,7 +141,7 @@ void cGrep::startJobs()
 
 void cGrep::start()
 {
-    populateJobQueue();
+    startJobsProducer();
 
-    startJobs();
+    startJobsConsumer();
 }
