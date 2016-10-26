@@ -45,10 +45,10 @@ public:
     cSearcherNative( std::string & pattern );
     ~cSearcherNative();
 
-    inline vec_type vector_load( const vec_type * );
-    inline vec_type vector_compare( vec_type &, vec_type & );
-    inline unsigned int vector_to_bitmask( vec_type & );
-    inline unsigned int int_bits_count( unsigned int & );
+    inline vec_type vector_load( const vec_type * ) { vec_type temp; return temp; }
+    inline vec_type vector_compare( vec_type &, vec_type & ) { vec_type temp; return temp; }
+    inline unsigned int vector_to_bitmask( vec_type & ) { return 0; }
+    inline unsigned int int_bits_count( unsigned int & ) { return 0; } 
 
     virtual std::vector< sMatchInstance > process( std::string & filename );
 

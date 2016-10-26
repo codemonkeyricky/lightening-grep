@@ -1,7 +1,7 @@
 CXX 		:= g++
 # CXX 		:= clang++-3.6
 
-CXXFLAGS 	:= -mavx2
+CXXFLAGS 	:= -march=native
 
 DFLAGS 		:= -g -O0
 RFLAGS 		:= -O3

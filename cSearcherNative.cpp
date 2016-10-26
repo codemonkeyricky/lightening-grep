@@ -220,6 +220,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
 }
 
 
+#if defined( __AVX__ ) 
 template<>
 inline __m128i cSearcherNative< AVX >::vector_load(
     const __m128i * input
@@ -255,8 +256,10 @@ inline unsigned int cSearcherNative< AVX >::int_bits_count(
 {
     return _mm_popcnt_u32( input );
 }
+#endif 
 
 
+#if defined( __AVX2__ ) 
 template<>
 inline __m256i cSearcherNative< AVX2 >::vector_load(
     const __m256i * input
@@ -292,7 +295,9 @@ inline unsigned int cSearcherNative< AVX2 >::int_bits_count(
 {
     return _mm_popcnt_u32( input );
 }
+#endif
 
 
 template class cSearcherNative< AVX >;
 template class cSearcherNative< AVX2 >;
+
