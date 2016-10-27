@@ -17,11 +17,13 @@ cQueue< T >::~cQueue()
 
 
 template <class T>
-void cQueue< T >::push( T data )
+bool cQueue< T >::push( T & data )
 {
     lock_guard< mutex > lock( m_lock );
 
     m_queue.push( data );
+
+    return true;
 }
 
 

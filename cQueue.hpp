@@ -3,16 +3,18 @@
 #include <mutex>
 #include <queue>
 
-template <class T>
-class cQueue
+#include "iQueue.hpp"
+
+template < class T >
+class cQueue : public iQueue< T >
 {
 public:
     cQueue();
-    ~cQueue();
+    virtual ~cQueue();
 
-    void push( T );
-    bool pop( T & );
-    uint32_t size();
+    virtual bool push( T & );
+    virtual bool pop( T & );
+    virtual uint32_t size();
 
 private:
     std::mutex      m_lock;
