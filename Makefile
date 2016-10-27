@@ -10,3 +10,6 @@ LDFLAGS		:= -lpthread
 all : cSearcherNative.cpp main.cpp cQueue.cpp cFileFinder.cpp cPrinter.cpp cGrep.cpp 
 	$(CXX) $(CXXFLAGS) $(DFLAGS) $^ $(LDFLAGS) -std=gnu++11 -o gg_debug
 	$(CXX) $(CXXFLAGS) $(RFLAGS) $^ $(LDFLAGS) -std=gnu++11 -o gg
+
+install : 
+	cp gg /usr/local/bin
