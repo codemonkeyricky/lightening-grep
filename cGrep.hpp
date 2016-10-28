@@ -17,8 +17,8 @@ public:
     static bool avx2_support;
 
 private:
-    void startJobsProducer();
-    void startJobsConsumer();
+    void startProducer( std::vector< std::thread > & );
+    void startConsumer( std::vector< std::thread > & );
 
     static void patternFinder( int, cQueue< std::string > *, std::string );
 

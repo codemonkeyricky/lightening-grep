@@ -100,7 +100,9 @@ cGrep::~cGrep()
 }
 
 
-void cGrep::startJobsProducer()
+void cGrep::startProducer(
+    vector< thread >   &pool
+    )
 {
     if ( m_filePath != "" )
     {
@@ -125,27 +127,29 @@ void cGrep::startJobsProducer()
 }
 
 
-void cGrep::startJobsConsumer()
+void cGrep::startConsumer(
+    vector< thread >   &pool
+    )
 {
     int workerThreads = 4;
-    vector< thread >            pool;
-    vector< vector< string > >  jobs;
 
     for ( auto i = 0; i < workerThreads; i ++ )
     {
         pool.push_back( thread( patternFinder, i, &fileQ, m_pattern ) );
-    }
-
-    for ( auto & thread : pool )
-    {
-        thread.join();
     }
 }
 
 
 void cGrep::start()
 {
-    startJobsProducer();
+    vector< thread >    pool;
 
-    startJobsConsumer();
+    startProducer( pool );
+
+    startConsumer( pool );
+
+    for ( auto & thread : pool )
+    {
+        thread.join();
+    }
 }
