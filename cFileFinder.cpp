@@ -34,6 +34,8 @@ void cFileFinder::exploreDirectory(
 
     toExplore.push( root );
 
+    int count = 0;
+
     while ( toExplore.size() > 0 )
     {
         auto to_explore = toExplore.front();
@@ -83,25 +85,35 @@ void cFileFinder::exploreDirectory(
                     continue;
                 }
 
-                auto ext = strstr( name, "." );
-                if ( ext == nullptr )
-                {
-                    continue;
-                }
-
                 int allow = 0;
-                if ( strcmp( ext, ".c" ) == 0
-                    || strcmp( ext, ".h" ) == 0
-                    || strcmp( ext, ".hpp" ) == 0
-                    || strcmp( ext, ".cpp" ) == 0
-                    || strcmp( ext, ".txt" ) == 0
-                )
+
+                if ( strcmp( name, "Makefile" ) == 0 )
                 {
                     allow = 1;
+                }
+                else
+                {
+                    auto ext = strstr( name, "." );
+                    if ( ext == nullptr )
+                    {
+                        continue;
+                    }
+
+                    if ( strcmp( ext, ".c" ) == 0
+                        || strcmp( ext, ".h" ) == 0
+                        || strcmp( ext, ".hpp" ) == 0
+                        || strcmp( ext, ".cpp" ) == 0
+                        || strcmp( ext, ".txt" ) == 0
+                    )
+                    {
+                        allow = 1;
+                    }
                 }
 
                 if ( !allow )
                 {
+//                    cout << "to not add  ## " << name << endl;
+
                     continue;
                 }
 
@@ -113,14 +125,17 @@ void cFileFinder::exploreDirectory(
 
                 to_add += string( name );
 
-//                cout << "### file : " << to_add << endl;
-
                 list->push( to_add );
+
+
+                count ++;
             }
         }
 
         closedir( dirp );
     }
+
+    cout << "######  files to process " << count << endl;
 
     g_done = 1;
 }
