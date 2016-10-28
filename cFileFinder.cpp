@@ -25,14 +25,19 @@ cFileFinder::~cFileFinder()
 
 extern int g_done;
 
-void cFileFinder::start()
+void cFileFinder::exploreDirectory(
+    std::string             root,
+    iQueue< std::string >  *list
+    )
 {
-    m_pathToExplore.push( m_rootPath );
+    std::queue< std::string >   toExplore;
 
-    while ( m_pathToExplore.size() > 0 )
+    toExplore.push( root );
+
+    while ( toExplore.size() > 0 )
     {
-        auto to_explore = m_pathToExplore.front();
-        m_pathToExplore.pop();
+        auto to_explore = toExplore.front();
+        toExplore.pop();
 
         auto dirp = opendir( to_explore.c_str() );
 
@@ -65,7 +70,7 @@ void cFileFinder::start()
 
                 to_add += string( name );
 
-                m_pathToExplore.push( to_add );
+                toExplore.push( to_add );
 
 //                cout << "### path : " << to_add << endl;
             }
@@ -110,7 +115,7 @@ void cFileFinder::start()
 
 //                cout << "### file : " << to_add << endl;
 
-                m_fileList.push( to_add );
+                list->push( to_add );
             }
         }
 
@@ -118,4 +123,10 @@ void cFileFinder::start()
     }
 
     g_done = 1;
+}
+
+void cFileFinder::start()
+{
+
+
 }

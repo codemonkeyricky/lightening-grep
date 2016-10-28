@@ -19,6 +19,8 @@ public:
 //        std::string
     };
 
+    static void exploreDirectory( std::string root, iQueue< std::string > *list );
+
 private:
     cQueue< std::string >      &m_fileList;
     std::queue< std::string >   m_pathToExplore;

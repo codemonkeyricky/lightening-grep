@@ -112,8 +112,12 @@ void cGrep::startJobsProducer()
     auto start = std::chrono::high_resolution_clock::now();
 
     std::string  dir( "." );
-    cFileFinder ff( fileQ, dir );
-    ff.start();
+//    cFileFinder ff( fileQ, dir );
+//    ff.start();
+
+    thread t( cFileFinder::exploreDirectory, dir, &fileQ );
+
+    t.detach();
 
     auto finish = std::chrono::high_resolution_clock::now();
 //    std::cout << "Directory traverse took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
