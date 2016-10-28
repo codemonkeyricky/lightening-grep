@@ -52,5 +52,3 @@ uint32_t cQueue< T >::size()
     return m_queue.size();
 }
 
-
-template class cQueue< string >;

@@ -298,7 +298,3 @@ inline unsigned int cSearcherNative< AVX2 >::int_bits_count(
 }
 #endif
 
-
-template class cSearcherNative< AVX >;
-template class cSearcherNative< AVX2 >;
-

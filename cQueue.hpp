@@ -20,3 +20,5 @@ private:
     std::mutex      m_lock;
     std::queue< T > m_queue;
 };
+
+#include "cQueue.tpp"

@@ -65,3 +65,6 @@ private:
 
     std::string m_pattern;
 };
+
+#include "cSearcherNative.tpp"
+
