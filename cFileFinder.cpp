@@ -7,22 +7,6 @@
 
 using namespace std;
 
-cFileFinder::cFileFinder(
-    cQueue< std::string >  &q,
-    std::string            &p
-    )
-: m_fileList( q ),
-  m_rootPath( p )
-{
-}
-
-
-cFileFinder::~cFileFinder()
-{
-
-}
-
-
 extern int g_done;
 
 void cFileFinder::exploreDirectory(
@@ -140,8 +124,3 @@ void cFileFinder::exploreDirectory(
     g_done = 1;
 }
 
-void cFileFinder::start()
-{
-
-
-}
