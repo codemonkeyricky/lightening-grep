@@ -10,23 +10,51 @@ target="big2.txt"
 drop_everything="/dev/null 2>&1 > /dev/null"
 result=()
 
-echo "Profile commands searching single larg file..."
+#echo "Profiling commands searching single large file..."
+#for i in "${!cmd[@]}"; 
+#do
+#    # echo "${cmd[$i]}"
+#    # echo "Warming read cache...";
+#    ${cmd[$i]} ${opt[$i]} $pattern $target > /dev/null 2>&1 > /dev/null
+#    # echo "Profiling..."
+#    result[$i]=$( ( perf stat ${cmd[i]} ${opt[$i]} $pattern $target > /dev/null ) 2>&1 | grep "seconds time elapsed" | awk '{print $1}' )
+#    # echo ${result[$i]}
+#done
+#
+#for i in "${!result[@]}"; 
+#do
+#    # echo ${cmd[$i]} # --> ${result[$i]}
+#    # echo ${result[$i]}
+#    echo ${cmd[$i]}$'\t'${result[$i]}
+#done
+
+rm big2.txt
+pushd ../linux-4.7.6
+
+cmd=( "grep" "ag" "gg" ) 
+opt=( "-rn --include=*.c --include=*.h" "--cc" "" ) 
+pattern="copyright"
+result2=()
+
+echo "Profiling commands searching large repository"
 for i in "${!cmd[@]}"; 
 do
-    # echo "${cmd[$i]}"
-    # echo "Warming read cache...";
-    ${cmd[$i]} ${opt[$i]} $pattern $target > /dev/null 2>&1 > /dev/null
-    # echo "Profiling..."
-    result[$i]=$( ( perf stat ${cmd[i]} ${opt[$i]} $pattern $target > /dev/null ) 2>&1 | grep "seconds time elapsed" | awk '{print $1}' )
-    # echo ${result[$i]}
+    # echo "${cmd[$i]}" "${opt[$i]}" "$pattern"
+    echo "Warming read cache...";
+    # ${cmd[$i]} ${opt[$i]} $pattern > /dev/null 2>&1 > /dev/null
+    echo "Profiling..."
+    result2[$i]=$( ( perf stat ${cmd[$i]} ${opt[$i]} $pattern > /dev/null ) 2>&1 | grep "seconds time" | awk '{print $1}')
+    echo ${result2[$i]}
 done
 
-for i in "${!result[@]}"; 
+for i in "${!result2[@]}"; 
 do
-    # echo ${cmd[$i]} # --> ${result[$i]}
-    # echo ${result[$i]}
-    echo ${cmd[$i]}$'\t'${result[$i]}
+    # echo ${cmd[$i]} # --> ${result2[$i]}
+    # echo ${result2[$i]}
+    echo ${cmd[$i]}$'\t'${result2[$i]}
 done
+
+popd
 
 #echo "gg single file"
 #echo "warming read cache..."
