@@ -41,6 +41,7 @@ cGrep::~cGrep()
 
 }
 
+extern int g_done;
 
 void cGrep::startProducer(
     vector< thread >   &pool
@@ -49,6 +50,8 @@ void cGrep::startProducer(
     if ( m_filePath != "" )
     {
         fileQ.push( m_filePath );
+
+        g_done = 1;
 
         return;
     }
@@ -71,11 +74,17 @@ void cGrep::startConsumer(
     cap = avx_support ? static_cast< int >( cPatternFinder::Capability::AVX ): 0x0; 
     cap |= avx2_support ? static_cast< int >( cPatternFinder::Capability::AVX2 ): 0x0; 
 
-    int workerThreads = 4;
-
-    for ( auto i = 0; i < workerThreads; i ++ )
+    if ( pool.size() > 0 )
     {
-        pool.emplace_back( cPatternFinder::findPattern, i, cap, &fileQ, m_pattern );
+        int workerThreads = 4;
+        for ( auto i = 0; i < workerThreads; i ++ )
+        {
+            pool.emplace_back( cPatternFinder::findPattern, i, cap, &fileQ, m_pattern );
+        }
+    }
+    else
+    {
+        cPatternFinder::findPattern( 0, cap, &fileQ, m_pattern );
     }
 }
 

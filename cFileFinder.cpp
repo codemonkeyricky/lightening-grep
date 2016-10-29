@@ -69,29 +69,22 @@ void cFileFinder::exploreDirectory(
                     continue;
                 }
 
-                int allow = 0;
+                int allow = 1;
 
-                if ( strcmp( name, "Makefile" ) == 0 )
+                auto ext = strstr( name, "." );
+                if ( ext == nullptr )
+                {
+                    continue;
+                }
+
+                if ( strcmp( ext, ".c" ) == 0
+                    || strcmp( ext, ".h" ) == 0
+                    //                        || strcmp( ext, ".hpp" ) == 0
+                    //                        || strcmp( ext, ".cpp" ) == 0
+                    //                        || strcmp( ext, ".txt" ) == 0
+                )
                 {
                     allow = 1;
-                }
-                else
-                {
-                    auto ext = strstr( name, "." );
-                    if ( ext == nullptr )
-                    {
-                        continue;
-                    }
-
-                    if ( strcmp( ext, ".c" ) == 0
-                        || strcmp( ext, ".h" ) == 0
-                        || strcmp( ext, ".hpp" ) == 0
-                        || strcmp( ext, ".cpp" ) == 0
-                        || strcmp( ext, ".txt" ) == 0
-                    )
-                    {
-                        allow = 1;
-                    }
                 }
 
                 if ( !allow )

@@ -41,7 +41,7 @@ void cPatternFinder::findPattern(
             }
         }
 
-        usleep( 1 );
+//        usleep( 1 );
     }
 
     // auto finish = std::chrono::high_resolution_clock::now();
