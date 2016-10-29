@@ -69,9 +69,16 @@ void cFileFinder::exploreDirectory(
                     continue;
                 }
 
-                int allow = 1;
+                int allow = 0;
 
-                auto ext = strstr( name, "." );
+                const char *curr = name;
+                const char *ext = nullptr;
+                while ( curr = strstr( curr, "." ) )
+                {
+                    ext = curr;
+                    curr ++;
+                }
+
                 if ( ext == nullptr )
                 {
                     continue;
@@ -104,6 +111,7 @@ void cFileFinder::exploreDirectory(
 
                 list->push( to_add );
 
+//                cout << to_add << endl;
 
                 count ++;
             }
