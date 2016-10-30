@@ -13,7 +13,7 @@ result=()
 echo "Profiling commands searching single large file..."
 for i in "${!cmd[@]}"; 
 do
-    # echo "${cmd[$i]}"
+    echo "Command to profile:" "${cmd[$i]}" "${opt[$i]}" "$pattern" "$target"
     # echo "Warming read cache...";
     ${cmd[$i]} ${opt[$i]} $pattern $target > /dev/null 2>&1 > /dev/null
     # echo "Profiling..."
@@ -32,11 +32,11 @@ cpu=()
 echo "Profiling commands searching large repository"
 for i in "${!cmd[@]}"; 
 do
-    # echo "${cmd[$i]}" "${opt[$i]}" "$pattern"
-    echo "Warming read cache...";
+    echo "Command to profile:" "${cmd[$i]}" "${opt[$i]}" "$pattern"
+    # echo "Warming read cache...";
     # ${cmd[$i]} ${opt[$i]} $pattern > /dev/null 2>&1 > /dev/null
-    echo "Profiling..."
-    ( perf stat ${cmd[$i]} ${opt[$i]} $pattern > /dev/null ) 2>&1 | tee tmp 
+    # echo "Profiling..."
+    ( perf stat ${cmd[$i]} ${opt[$i]} $pattern > /dev/null ) > tmp 2>&1 
 
     cpu[$i]=$(cat tmp | grep "CPU" | awk '{print $5}')
     time[$i]=$(cat tmp | grep "seconds time" | awk '{print $1}')
