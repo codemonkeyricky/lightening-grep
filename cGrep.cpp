@@ -32,7 +32,7 @@ cGrep::cGrep(
     unsigned int eax, ebx, ecx, edx;
 
     avx_support     = __builtin_cpu_supports( "avx" );
-    avx2_support    = 0; // __builtin_cpu_supports( "avx2" );
+    avx2_support    = __builtin_cpu_supports( "avx2" );
 }
 
 
