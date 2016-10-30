@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "cQueue.hpp"
+#include "iQueue.hpp"
+#include "sSearchCommon.hpp"
 
 class cGrep
 {
@@ -17,13 +18,10 @@ public:
     static bool avx2_support;
 
 private:
-    void startProducer( std::vector< std::thread > & );
-    void startConsumer( std::vector< std::thread > & );
+    void startProducer( std::vector< std::thread > &, iQueue< sSearchEntry > & );
+    void startConsumer( std::vector< std::thread > &, iQueue< sSearchEntry > & );
 
-    static void patternFinder( int, cQueue< std::string > *, std::string );
-
-    cQueue< std::string >       fileQ;
-
+    int         m_workerThreads = 4;
     std::string m_filePath;
     std::string m_pattern;
 };

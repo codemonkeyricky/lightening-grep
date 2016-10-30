@@ -7,11 +7,10 @@
 
 using namespace std;
 
-extern int g_done;
-
 void cFileFinder::exploreDirectory(
+    int                     workerThreads,
     std::string             root,
-    iQueue< std::string >  *list
+    iQueue< sSearchEntry >  *list
     )
 {
     std::queue< std::string >   toExplore;
@@ -109,7 +108,9 @@ void cFileFinder::exploreDirectory(
 
                 to_add += string( name );
 
-                list->push( to_add );
+                sSearchEntry se( sSearchEntry::Msg::Search, to_add );
+
+                list->push( se );
 
 //                cout << to_add << endl;
 
@@ -122,6 +123,12 @@ void cFileFinder::exploreDirectory(
 
     cout << "######  files to process " << count << endl;
 
-    g_done = 1;
+    for ( auto i = 0; i < workerThreads; i ++ )
+    {
+        string empty;
+        sSearchEntry se( sSearchEntry::Msg::Done, empty );
+
+        list->push( se );
+    }
 }
 

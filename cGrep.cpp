@@ -13,14 +13,12 @@
 #include "cPatternFinder.hpp"
 #include "cPrinter.hpp"
 #include "cSearcherNative.hpp"
+#include "sSearchCommon.hpp"
 
 using namespace std;
 
 bool cGrep::avx_support = 0;
 bool cGrep::avx2_support = 0;
-
-int g_done = 0;
-
 
 cGrep::cGrep(
     std::string & filePath,
@@ -41,17 +39,19 @@ cGrep::~cGrep()
 
 }
 
-extern int g_done;
-
 void cGrep::startProducer(
-    vector< thread >   &pool
+    vector< thread >        &pool,
+    iQueue< sSearchEntry >  &list
     )
 {
     if ( m_filePath != "" )
     {
-        fileQ.push( m_filePath );
+        sSearchEntry se( sSearchEntry::Msg::Search, m_filePath );
+        list.push( se );
 
-        g_done = 1;
+        string empty;
+        sSearchEntry done( sSearchEntry::Msg::Done, empty );
+        list.push( done );
 
         return;
     }
@@ -62,12 +62,13 @@ void cGrep::startProducer(
 #endif
 
     std::string  dir( "." );
-    pool.emplace_back( cFileFinder::exploreDirectory, dir, &fileQ );
+    pool.emplace_back( cFileFinder::exploreDirectory, m_workerThreads, dir, &list );
 }
 
 
 void cGrep::startConsumer(
-    vector< thread >   &pool
+    vector< thread >        &pool,
+    iQueue< sSearchEntry >  &list
     )
 {
     int cap;
@@ -76,26 +77,26 @@ void cGrep::startConsumer(
 
     if ( pool.size() > 0 )
     {
-        int workerThreads = 4;
-        for ( auto i = 0; i < workerThreads; i ++ )
+        for ( auto i = 0; i < m_workerThreads; i ++ )
         {
-            pool.emplace_back( cPatternFinder::findPattern, i, cap, &fileQ, m_pattern );
+            pool.emplace_back( cPatternFinder::findPattern, i, cap, &list, m_pattern );
         }
     }
     else
     {
-        cPatternFinder::findPattern( 0, cap, &fileQ, m_pattern );
+        cPatternFinder::findPattern( 0, cap, &list, m_pattern );
     }
 }
 
 
 void cGrep::start()
 {
-    vector< thread >    pool;
+    vector< thread >        pool;
+    cQueue< sSearchEntry >  list;
 
-    startProducer( pool );
+    startProducer( pool, list );
 
-    startConsumer( pool );
+    startConsumer( pool, list );
 
     for ( auto & thread : pool )
     {

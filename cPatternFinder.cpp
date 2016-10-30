@@ -7,13 +7,11 @@
 
 using namespace std; 
 
-extern int g_done; 
-
 void cPatternFinder::findPattern(
-    int                 workerId,
-    int                 cap,
-    iQueue< string >   *fileList,
-    string              pattern
+    int                     workerId,
+    int                     cap,
+    iQueue< sSearchEntry > *fileList,
+    string                  pattern
     )
 {
     iSearcher  *searcher;
@@ -28,20 +26,25 @@ void cPatternFinder::findPattern(
 
     vector< iSearcher::sFileSummary > ssv;
 
-    while ( !g_done || fileList->size() > 0 )
+    while ( true )
     {
-        string path;
-        while ( fileList->pop( path ) )
+        sSearchEntry path;
+        if ( !fileList->pop( path ) )
         {
-            auto result = searcher->process( path );
+            usleep( 1 );
 
-            if ( result.size() > 0 )
-            {
-                ssv.emplace_back( path, result );
-            }
+            continue;
         }
 
-//        usleep( 1 );
+        if ( path.msg == sSearchEntry::Msg::Done )
+            break;
+
+        auto result = searcher->process( path.path );
+
+        if ( result.size() > 0 )
+        {
+            ssv.emplace_back( path.path, result );
+        }
     }
 
     // auto finish = std::chrono::high_resolution_clock::now();
