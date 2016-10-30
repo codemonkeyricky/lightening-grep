@@ -21,4 +21,4 @@ private:
     std::queue< T > m_queue;
 };
 
-#include "cQueue.tpp"
+#include "tQueue.cpp"
