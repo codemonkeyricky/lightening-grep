@@ -211,7 +211,15 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
             auto nlm    = vector_to_bitmask( nls );
             auto lines  = int_bits_count( nlm );
 
-            ln  += lines;
+            // TODO: This if() condition actually adds 5% to the execution time.
+            // Not sure why. Is it the branch misprediction? Or simply because it
+            // added a new instruction in the data path?
+            //
+            // This is required to ensure accuracy - will need to optimize later.
+            if ( i < MMAP_SIZE )
+            {
+                ln += lines;
+            }
         }
     }
 
