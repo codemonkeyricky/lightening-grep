@@ -9,6 +9,8 @@ pattern="copyright"
 target="big2.txt"
 drop_everything="/dev/null 2>&1 > /dev/null"
 result=()
+time1=()
+cpu1=()
 
 echo "Profiling commands searching single large file..."
 for i in "${!cmd[@]}"; 
@@ -17,8 +19,11 @@ do
     # echo "Warming read cache...";
     ${cmd[$i]} ${opt[$i]} $pattern $target > /dev/null 2>&1 > /dev/null
     # echo "Profiling..."
-    result[$i]=$( ( perf stat ${cmd[i]} ${opt[$i]} $pattern $target > /dev/null ) 2>&1 | grep "seconds time elapsed" | awk '{print $1}' )
-    # echo ${result[$i]}
+    ( perf stat ${cmd[i]} ${opt[$i]} $pattern $target > /dev/null ) > tmp 2>&1
+
+    cpu1[$i]=$(cat tmp | grep "CPU" | awk '{print $5}')
+    time1[$i]=$(cat tmp | grep "seconds time" | awk '{print $1}')
+
 done
 
 rm big2.txt
@@ -26,8 +31,8 @@ pushd ../linux-4.7.6
 
 opt=( "-rn --include=*.c --include=*.h" "--cc" "" ) 
 pattern="virt_to_page"
-time=()
-cpu=()
+time2=()
+cpu2=()
 
 echo "Profiling commands searching large repository"
 for i in "${!cmd[@]}"; 
@@ -38,11 +43,8 @@ do
     # echo "Profiling..."
     ( perf stat ${cmd[$i]} ${opt[$i]} $pattern > /dev/null ) > tmp 2>&1 
 
-    cpu[$i]=$(cat tmp | grep "CPU" | awk '{print $5}')
-    time[$i]=$(cat tmp | grep "seconds time" | awk '{print $1}')
-
-    # echo "${time[$i]}"
-    # echo ${cpu[$i]}
+    cpu2[$i]=$(cat tmp | grep "CPU" | awk '{print $5}')
+    time2[$i]=$(cat tmp | grep "seconds time" | awk '{print $1}')
 done
 
 popd
@@ -52,13 +54,13 @@ echo "Single file profile result:"
 
 for i in "${!cmd[@]}"; 
 do
-    echo ${cmd[$i]}$'\t'${result[$i]}
+    echo ${cmd[$i]}$'\t'${time1[$i]}$'\t'${cpu1[$i]}
 done
 
 echo "Multifile file profile result:"
 
 for i in "${!cmd[@]}"; 
 do
-    echo ${cmd[$i]}$'\t'${time[$i]}$'\t'${cpu[$i]}
+    echo ${cmd[$i]}$'\t'${time2[$i]}$'\t'${cpu2[$i]}
 done
 
