@@ -1,7 +1,7 @@
 
 echo "Creating big single file..."
 cp big.txt big2.txt
-{ for i in {1..100}; do cat big.txt >> big2.txt ; done } > /dev/null
+{ for i in {1..50}; do cat big.txt >> big2.txt ; done } > /dev/null
 
 cmd=( "grep" "ag" "gg" ) 
 opt=( "-rn" "" "" ) 
