@@ -66,6 +66,6 @@ do
         norm=$( calc ${cpu2[$i]}*${time2[$i]} ) 
     fi
 
-    echo ${cmd[$i]}$'\t'${time2[$i]}$'\t'${cpu2[$i]}$'\t'${norm}
+    echo ${cmd[$i]}$'\t'"Time: "${time2[$i]}$'\t'"CPUs Used: "${cpu2[$i]}$'\t'"Normalized: "${norm}
 done
 
