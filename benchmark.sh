@@ -61,6 +61,11 @@ echo "Multifile file profile result:"
 
 for i in "${!cmd[@]}"; 
 do
-    echo ${cmd[$i]}$'\t'${time2[$i]}$'\t'${cpu2[$i]}
+    norm=0
+    if hash calc > /dev/null; then 
+        norm=$( calc ${cpu2[$i]}*${time2[$i]} ) 
+    fi
+
+    echo ${cmd[$i]}$'\t'${time2[$i]}$'\t'${cpu2[$i]}$'\t'${norm}
 done
 
