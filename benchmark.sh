@@ -29,7 +29,7 @@ done
 rm big2.txt
 pushd ../linux-4.7.6
 
-opt=( "-rn --include=*.c --include=*.h" "--cc" "" ) 
+opt=( "-rn --include=*.c --include=*.h" "--cc" "--cc" ) 
 pattern="virt_to_page"
 time2=()
 cpu2=()

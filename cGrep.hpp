@@ -9,7 +9,7 @@
 class cGrep
 {
 public:
-    cGrep( std::string &, std::string & );
+    cGrep( std::string &, std::string &, std::string & );
     ~cGrep();
 
     void start();
@@ -24,4 +24,5 @@ private:
     int         m_workerThreads = 4;
     std::string m_filePath;
     std::string m_pattern;
+    std::string m_filter;
 };

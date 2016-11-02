@@ -29,19 +29,31 @@ int main(
         return -1;
     }
 
-    string pattern;
-    if ( argc >= 2 )
+    int index = 1;
+    string filter;
+
+    if ( strncmp( argv[ index ], "--", 2 ) == 0 )
     {
-        pattern = argv[ 1 ];
+        filter = string( argv[ index ] + 2 );
+
+        index++;
+    }
+
+    string pattern;
+    if ( ( argc - index ) > 0)
+    {
+        pattern = argv[ index ];
+
+        index++;
     }
 
     string path;
-    if ( argc >= 3 )
+    if ( ( argc - index ) > 0)
     {
-        path = argv[ 2 ];
+        path = argv[ index ];
     }
 
-    cGrep grepper( path, pattern );
+    cGrep grepper( path, pattern, filter );
     grepper.start();
 
     return 0;

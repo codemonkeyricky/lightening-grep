@@ -8,6 +8,11 @@
 class cFileFinder
 {
 public:
-    static void exploreDirectory( int workerThreads, std::string root, iQueue< sSearchEntry > *list );
+    static void exploreDirectory(
+        int workerThreads,
+        std::string root,
+        std::string filter,
+        iQueue< sSearchEntry > *list
+        );
 };
 
