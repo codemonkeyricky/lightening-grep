@@ -1,5 +1,7 @@
 #include <dirent.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <iostream>
 #include <map>
@@ -20,6 +22,28 @@ std::map< std::string, std::unordered_set< std::string > > f_fileFilter =
 {
 #include "cFileFinderFilterList.hpp"
 };
+
+
+bool isBinary( std::string & name )
+{
+    int fd          = open( name.c_str(), O_RDONLY );
+    int size        = lseek( fd, 0, SEEK_END );
+    lseek( fd, 0, SEEK_SET );
+    char buf[ 1024 ];
+
+    int bufLen = size < sizeof( buf ) ? size : sizeof( buf );
+    read( fd, buf, bufLen );
+
+    close( fd );
+
+    char *curr = buf; 
+    char *end = buf + bufLen;
+    while ( curr != end && *( curr++ ) != 0 )
+    { }
+
+    return ( curr != end );
+}
+
 
 void cFileFinder::exploreDirectory(
     int                         workerThreads,
@@ -114,11 +138,26 @@ void cFileFinder::exploreDirectory(
                     continue;
                 }
 
+                string to_add;
+                if ( to_explore != "." )
+                {
+                    to_add += to_explore + "/";
+                }
+
+                to_add += string( name );
+
                 if (   filter.find( ext ) != filter.end()
                     || filter.find( name ) != filter.end ()
                 )
                 {
                     allow = 1;
+                }
+                else
+                {
+                    if ( scanAllfiles )
+                    {
+                        allow = !isBinary( to_add );
+                    }
                 }
 
                 if ( !allow )
@@ -127,14 +166,6 @@ void cFileFinder::exploreDirectory(
 
                     continue;
                 }
-
-                string to_add;
-                if ( to_explore != "." )
-                {
-                    to_add += to_explore + "/";
-                }
-
-                to_add += string( name );
 
                 sSearchEntry se( sSearchEntry::Msg::Search, to_add );
 
