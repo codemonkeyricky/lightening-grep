@@ -53,7 +53,9 @@ int main(
         path = argv[ index ];
     }
 
-    cGrep grepper( path, pattern, filter );
+    std::vector< std::string > filters = { filter }; 
+
+    cGrep grepper( path, pattern, filters );
     grepper.start();
 
     return 0;
