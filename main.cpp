@@ -30,11 +30,14 @@ int main(
     }
 
     int index = 1;
+    std::vector< std::string > filters; 
     string filter;
 
     if ( strncmp( argv[ index ], "--", 2 ) == 0 )
     {
         filter = string( argv[ index ] + 2 );
+
+        filters.emplace_back( filter ); 
 
         index++;
     }
@@ -52,8 +55,6 @@ int main(
     {
         path = argv[ index ];
     }
-
-    std::vector< std::string > filters = { filter }; 
 
     cGrep grepper( path, pattern, filters );
     grepper.start();
