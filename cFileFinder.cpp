@@ -74,6 +74,8 @@ void cFileFinder::exploreDirectory(
 
     int count = 0;
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     while ( toExplore.size() > 0 )
     {
         auto to_explore = toExplore.front();
@@ -120,7 +122,7 @@ void cFileFinder::exploreDirectory(
                 {
                     // Ignore all hidden files.
 
-                    continue;
+//                    continue;
                 }
 
                 int allow = 0;
@@ -182,6 +184,9 @@ void cFileFinder::exploreDirectory(
         closedir( dirp );
     }
 
+    auto finish = std::chrono::high_resolution_clock::now();
+
+    std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
     cout << "######  files to process " << count << endl;
 
     for ( auto i = 0; i < workerThreads; i ++ )
