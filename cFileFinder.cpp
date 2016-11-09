@@ -133,10 +133,12 @@ void cFileFinder::exploreDirectory(
                     curr ++;
                 }
 
+#if 0
                 if ( ext == nullptr )
                 {
                     continue;
                 }
+#endif
 
                 string to_add;
                 if ( to_explore != "." )
@@ -146,7 +148,7 @@ void cFileFinder::exploreDirectory(
 
                 to_add += string( name );
 
-                if (   filter.find( ext ) != filter.end()
+                if (   ( ext != nullptr && filter.find( ext ) != filter.end() ) 
                     || filter.find( name ) != filter.end ()
                 )
                 {
