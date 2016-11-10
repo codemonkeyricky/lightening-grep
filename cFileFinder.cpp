@@ -1,23 +1,98 @@
 #include <dirent.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <iostream>
+#include <map>
+#include <vector>
+#include <string>
+#include <unordered_set>
+#include <cassert>
 
 #include "cFileFinder.hpp"
 
 using namespace std;
 
+std::unordered_set< std::string > f_allKnownTypes =
+{
+#include "cFileFinderTypeList.hpp"
+};
+
+std::map< std::string, std::unordered_set< std::string > > f_fileFilter =
+{
+#include "cFileFinderFilterList.hpp"
+};
+
+
+bool isBinary( std::string & name )
+{
+    int fd          = open( name.c_str(), O_RDONLY );
+    int size        = lseek( fd, 0, SEEK_END );
+
+    // Symbolic link will return size of -1;
+    if ( size < 0 )
+    {
+//        std::cout << "### symblink : " << name << std::endl;
+
+        return true;
+    }
+
+    lseek( fd, 0, SEEK_SET );
+    char buf[ 128 ];
+
+    int bufLen = size < sizeof( buf ) ? size : sizeof( buf );
+    int len = read( fd, buf, bufLen );
+    assert( bufLen == len );
+
+    close( fd );
+
+    char *curr = buf; 
+    char *end = buf + bufLen;
+    while ( curr != end && *( curr++ ) != 0 )
+    { }
+
+    bool result = ( curr != end );
+
+    if ( result )
+    {
+//        std::cout << "### binary file : " << name << std::endl;
+    }
+
+    return result;
+}
+
+
 void cFileFinder::exploreDirectory(
-    int                     workerThreads,
-    std::string             root,
-    iQueue< sSearchEntry >  *list
+    int                         workerThreads,
+    std::string                 root,
+    std::vector< std::string > &filters,
+    iQueue< sSearchEntry >     &list
     )
 {
+    bool scanAllfiles = ( filters.size() == 0 ) ? true : false;
+
+    std::unordered_set< std::string > filter; 
+    if ( filters.size() > 0 )
+    {
+        for ( auto & f : filters ) 
+        {
+            auto type = f_fileFilter[ f ]; 
+            filter.insert( type.begin(), type.end() );
+        }
+    }
+    else
+    {
+        filter = f_allKnownTypes;
+    }
+
     std::queue< std::string >   toExplore;
 
     toExplore.push( root );
 
     int count = 0;
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     while ( toExplore.size() > 0 )
     {
@@ -65,7 +140,7 @@ void cFileFinder::exploreDirectory(
                 {
                     // Ignore all hidden files.
 
-                    continue;
+//                    continue;
                 }
 
                 int allow = 0;
@@ -78,27 +153,12 @@ void cFileFinder::exploreDirectory(
                     curr ++;
                 }
 
+#if 0
                 if ( ext == nullptr )
                 {
                     continue;
                 }
-
-                if ( strcmp( ext, ".c" ) == 0
-                    || strcmp( ext, ".h" ) == 0
-                    //                        || strcmp( ext, ".hpp" ) == 0
-                    //                        || strcmp( ext, ".cpp" ) == 0
-                    //                        || strcmp( ext, ".txt" ) == 0
-                )
-                {
-                    allow = 1;
-                }
-
-                if ( !allow )
-                {
-//                    cout << "to not add  ## " << name << endl;
-
-                    continue;
-                }
+#endif
 
                 string to_add;
                 if ( to_explore != "." )
@@ -108,9 +168,30 @@ void cFileFinder::exploreDirectory(
 
                 to_add += string( name );
 
+                if (   ( ext != nullptr && filter.find( ext ) != filter.end() ) 
+                    || filter.find( name ) != filter.end ()
+                )
+                {
+                    allow = 1;
+                }
+                else
+                {
+                    if ( scanAllfiles )
+                    {
+                        allow = !isBinary( to_add );
+                    }
+                }
+
+                if ( !allow )
+                {
+//                    cout << "to not add  ## " << name << endl;
+
+                    continue;
+                }
+
                 sSearchEntry se( sSearchEntry::Msg::Search, to_add );
 
-                list->push( se );
+                list.push( se );
 
 //                cout << to_add << endl;
 
@@ -121,6 +202,9 @@ void cFileFinder::exploreDirectory(
         closedir( dirp );
     }
 
+    auto finish = std::chrono::high_resolution_clock::now();
+
+    std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
     cout << "######  files to process " << count << endl;
 
     for ( auto i = 0; i < workerThreads; i ++ )
@@ -128,7 +212,7 @@ void cFileFinder::exploreDirectory(
         string empty;
         sSearchEntry se( sSearchEntry::Msg::Done, empty );
 
-        list->push( se );
+        list.push( se );
     }
 }
 

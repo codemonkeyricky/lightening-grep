@@ -21,14 +21,14 @@ bool cGrep::avx_support = 0;
 bool cGrep::avx2_support = 0;
 
 cGrep::cGrep(
-    std::string & filePath,
-    std::string & pattern
+    std::string            & filePath,
+    std::string            & pattern,
+    std::vector< std::string >   & filters
     )
 : m_filePath( filePath ),
-  m_pattern( pattern )
+  m_pattern( pattern ),
+  m_filters( filters )
 {
-    unsigned int eax, ebx, ecx, edx;
-
     avx_support     = __builtin_cpu_supports( "avx" );
     avx2_support    = __builtin_cpu_supports( "avx2" );
 }
@@ -62,7 +62,13 @@ void cGrep::startProducer(
 #endif
 
     std::string  dir( "." );
-    pool.emplace_back( cFileFinder::exploreDirectory, m_workerThreads, dir, &list );
+    pool.emplace_back( 
+            cFileFinder::exploreDirectory, 
+            m_workerThreads, 
+            dir, 
+            std::ref( m_filters ), 
+            std::ref( list ) 
+            );
 }
 
 
