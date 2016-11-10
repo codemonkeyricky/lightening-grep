@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <cassert>
 
 #include "cFileFinder.hpp"
 
@@ -28,11 +29,21 @@ bool isBinary( std::string & name )
 {
     int fd          = open( name.c_str(), O_RDONLY );
     int size        = lseek( fd, 0, SEEK_END );
+
+    // Symbolic link will return size of -1;
+    if ( size < 0 )
+    {
+//        std::cout << "### symblink : " << name << std::endl;
+
+        return true;
+    }
+
     lseek( fd, 0, SEEK_SET );
-    char buf[ 1024 ];
+    char buf[ 128 ];
 
     int bufLen = size < sizeof( buf ) ? size : sizeof( buf );
-    read( fd, buf, bufLen );
+    int len = read( fd, buf, bufLen );
+    assert( bufLen == len );
 
     close( fd );
 
@@ -41,7 +52,14 @@ bool isBinary( std::string & name )
     while ( curr != end && *( curr++ ) != 0 )
     { }
 
-    return ( curr != end );
+    bool result = ( curr != end );
+
+    if ( result )
+    {
+//        std::cout << "### binary file : " << name << std::endl;
+    }
+
+    return result;
 }
 
 
