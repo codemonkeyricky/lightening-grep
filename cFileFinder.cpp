@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_set>
 #include <cassert>
+#include <stack>
 
 #include "cFileFinder.hpp"
 
@@ -62,6 +63,18 @@ bool isBinary( std::string & name )
     return result;
 }
 
+struct DirNode
+{
+    DirNode( struct dirent ** nl, int i, int total, std::string & p )
+        : namelist( nl ), curr( i ), total( total ), path( p )
+        { }
+
+    struct dirent **namelist; 
+    int             curr;
+    int             total;
+    std::string     path;
+};
+
 
 void cFileFinder::exploreDirectory(
     int                         workerThreads,
@@ -86,62 +99,68 @@ void cFileFinder::exploreDirectory(
         filter = f_allKnownTypes;
     }
 
-    std::queue< std::string >   toExplore;
-
-    toExplore.push( root );
-
     int count = 0;
-
     auto start = std::chrono::high_resolution_clock::now();
+
+    std::stack< DirNode >   toExplore;
+
+    struct dirent **namelist;
+    auto total = scandir( root.c_str(), &namelist, nullptr, alphasort );
+    toExplore.emplace( namelist, 0, total, root );
 
     while ( toExplore.size() > 0 )
     {
-        auto to_explore = toExplore.front();
-        toExplore.pop();
+        auto & dirs = toExplore.top();
 
-        auto dirp = opendir( to_explore.c_str() );
+        bool cleanup = true;
 
-        struct dirent * entry;
-        while ( ( entry = readdir( dirp ) ) != nullptr )
+        while ( dirs.curr < dirs.total )
         {
-            auto name = entry->d_name;
-            auto name_len = entry->d_reclen;
+            auto name_len   = dirs.namelist[ dirs.curr ]->d_reclen;
+            auto name       = dirs.namelist[ dirs.curr ]->d_name;
 
-            if ( entry->d_type == DT_DIR )
+            if ( dirs.namelist[ dirs.curr ]->d_type == DT_DIR )
             {
                 if ( strcmp( name, "." ) == 0
                     || strcmp( name, ".." ) == 0 )
                 {
-                    continue;
+                    goto next;
                 }
 
                 if ( strncmp( name, ".", 1 ) == 0 )
                 {
                     // Ignore all hidden directories.
 
-                    continue;
+                    goto next;
                 }
 
                 string to_add;
-                if ( to_explore != "." )
+                if ( dirs.path != "." )
                 {
-                    to_add += to_explore + "/";
+                    to_add += dirs.path + "/";
                 }
 
                 to_add += string( name );
 
-                toExplore.push( to_add );
+                struct dirent **namelist;
+                auto total = scandir( to_add.c_str(), &namelist, nullptr, alphasort );
+                toExplore.emplace( namelist, 0, total, to_add );
 
-//                cout << "### path : " << to_add << endl;
+                dirs.curr ++;
+
+                // Edge case.
+                cleanup = false;
+
+                break;
             }
             else
             {
-                if ( strncmp( name, ".", 1 ) == 0 )
-                {
-                    // Ignore all hidden files.
-
-//                    continue;
-                }
+//                if ( strncmp( name, ".", 1 ) == 0 )
+//                {
+//                    // Ignore all hidden files.
+//
+////                    continue;
+//                }
 
                 int allow = 0;
 
@@ -161,9 +180,9 @@ void cFileFinder::exploreDirectory(
 #endif
 
                 string to_add;
-                if ( to_explore != "." )
+                if ( dirs.path != "." )
                 {
-                    to_add += to_explore + "/";
+                    to_add += dirs.path + "/";
                 }
 
                 to_add += string( name );
@@ -186,6 +205,8 @@ void cFileFinder::exploreDirectory(
                 {
 //                    cout << "to not add  ## " << name << endl;
 
+                    dirs.curr ++;
+
                     continue;
                 }
 
@@ -197,9 +218,22 @@ void cFileFinder::exploreDirectory(
 
                 count ++;
             }
+
+            next:
+
+            dirs.curr ++;
         }
 
-        closedir( dirp );
+        if ( dirs.curr >= dirs.total && cleanup )
+        {
+            for ( int i = 0; i < dirs.total; i++ )
+            {
+                free( dirs.namelist[ i ] );
+            }
+            free( dirs.namelist );
+
+            toExplore.pop();
+        }
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
