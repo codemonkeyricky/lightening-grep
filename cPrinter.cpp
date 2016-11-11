@@ -19,6 +19,23 @@ using namespace std;
 
 std::mutex cPrinter::m_lock;
 
+
+void cPrinter::print(
+    iSearcher::sFileSummary & ss
+    )
+{
+    cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
+
+    for ( auto & r : ss.result )
+    {
+        cout << COLOR_YELLOW << r.line <<
+            COLOR_NONE << " : " << r.content << endl;
+    }
+
+    cout << endl;
+}
+
+
 void cPrinter::print(
     std::vector< iSearcher::sFileSummary >  & ssv
     )
@@ -27,13 +44,7 @@ void cPrinter::print(
 
     for ( auto & ss : ssv )
     {
-        cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
-
-        for ( auto & r : ss.result )
-        {
-            cout << COLOR_YELLOW << r.line <<
-                COLOR_NONE << " : " << r.content << endl;
-        }
+        print( ss );
 
         cout << endl;
     }

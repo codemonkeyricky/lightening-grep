@@ -43,7 +43,9 @@ void cPatternFinder::findPattern(
 
         if ( result.size() > 0 )
         {
-            ssv.emplace_back( path.path, result );
+            iSearcher::sFileSummary ssv( path.path, result );
+
+            cPrinter::print( ssv );
         }
     }
 
@@ -57,7 +59,7 @@ void cPatternFinder::findPattern(
         "Match found = " << ssv.size() << endl;
 #endif
 
-    cPrinter::print( ssv );
+//    cPrinter::print( ssv );
 }
 
 
