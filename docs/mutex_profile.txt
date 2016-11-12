@@ -1,0 +1,45 @@
+When greppging through linux kernel source with --cc option, the producer will 
+produce ~40k files while the consumers will access the same queue to pull the 
+jobs off. Uncontended mutex is fast, but contended mutex may be very costly. 
+
+In order to see if the execution is lock bound, I had to first profile the lock
+contention rate prior to investigating use of lockless data structure. 
+
+Google points me to 'mutrace', which was readily available on my platform. mutrace
+revealed the following: 
+
+------------------------------------------------------------------------------------------------------
+richard@richard-Aspire-S7-392:~/dev/linux-4.7.6$ mutrace ../lightning-grep/gg --cc late_initcall_sync > /dev/null 
+mutrace: 0.2 sucessfully initialized for process gg (pid 24639).
+
+mutrace: Showing statistics for process gg (pid 24639).
+mutrace: 1 mutexes used.
+
+Mutex #0 (0x0x7fffef082de8) first referenced by:
+	/usr/lib/mutrace/libmutrace.so(pthread_mutex_lock+0x49) [0x7f95fa87a6b9]
+	../lightning-grep/gg(_ZN6cQueueI12sSearchEntryE4pushERS0_+0x26) [0x4194a6]
+
+mutrace: Showing 1 most contended mutexes:
+
+ Mutex #   Locked  Changed    Cont. tot.Time[ms] avg.Time[ms] max.Time[ms]  Flags
+       0    82277    47352    10509       15.990        0.000        0.042 M-.--.
+                                                                           ||||||
+                                                                           /|||||
+          Object:                                     M = Mutex, W = RWLock /||||
+           State:                                 x = dead, ! = inconsistent /|||
+             Use:                                 R = used in realtime thread /||
+      Mutex Type:                 r = RECURSIVE, e = ERRRORCHECK, a = ADAPTIVE /|
+  Mutex Protocol:                                      i = INHERIT, p = PROTECT /
+     RWLock Kind: r = PREFER_READER, w = PREFER_WRITER, W = PREFER_WRITER_NONREC 
+
+mutrace: Note that the flags column R is only valid in --track-rt mode!
+
+mutrace: Total runtime is 244.293 ms.
+
+mutrace: Results for SMP with 4 processors.
+
+------------------------------------------------------------------------------------------------------
+
+Data shows mutex contention consumes about 6% of total execution. I'm not 
+going to worry too much about it for the time being.
+
