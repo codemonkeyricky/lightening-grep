@@ -29,31 +29,43 @@ int main(
         return -1;
     }
 
-    int index = 1;
     std::vector< std::string > filters; 
     string filter;
 
-    if ( strncmp( argv[ index ], "--", 2 ) == 0 )
-    {
-        filter = string( argv[ index ] + 2 );
-
-        filters.emplace_back( filter ); 
-
-        index++;
-    }
-
+    int index = 1;
     string pattern;
-    if ( ( argc - index ) > 0)
-    {
-        pattern = argv[ index ];
-
-        index++;
-    }
-
     string path;
-    if ( ( argc - index ) > 0)
+    while ( index < argc )
     {
-        path = argv[ index ];
+        // Parse options.
+        if ( strncmp( argv[ index ], "-", 1 ) == 0 )
+        {
+            // Filter options.
+            if ( strncmp( argv[ index ], "--", 2 ) == 0 )
+            {
+                filter = string( argv[ index ] + 2 );
+
+                filters.emplace_back( filter );
+            }
+        }
+        else
+        if ( pattern == "" )
+        {
+            pattern = argv[ index ];
+        }
+        else
+        {
+            if ( path == "" )
+            {
+                path = argv[ index ];
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        index ++;
     }
 
     cGrep grepper( path, pattern, filters );
