@@ -1,0 +1,31 @@
+I used cachegrind to examine if the application is cache friendly: 
+
+valgrind --tool=cachegrind ../lightning-grep/gg --cc late_initcall_sync
+
+==24857== 
+==24857== I   refs:      1,474,919,130
+==24857== I1  misses:            3,707
+==24857== LLi misses:            2,619
+==24857== I1  miss rate:          0.00%
+==24857== LLi miss rate:          0.00%
+==24857== 
+==24857== D   refs:        557,959,969  (326,721,129 rd   + 231,238,840 wr)
+==24857== D1  misses:        5,970,580  (  5,689,782 rd   +     280,798 wr)
+==24857== LLd misses:           56,777  (      8,520 rd   +      48,257 wr)
+==24857== D1  miss rate:           1.0% (        1.7%     +         0.1%  )
+==24857== LLd miss rate:           0.0% (        0.0%     +         0.0%  )
+==24857== 
+==24857== LL refs:           5,974,287  (  5,693,489 rd   +     280,798 wr)
+==24857== LL misses:            59,396  (     11,139 rd   +      48,257 wr)
+==24857== LL miss rate:            0.0% (        0.0%     +         0.0%  )
+
+The result looks to be pretty good.
+
+The first section is L1 and last level cache instruction rates. In short all 
+instruction fits in instruction cache. 
+
+The second section shows a small spill L1 data cache, and all fits in last 
+level data cache. 
+
+The third section shows everything fits within L3. 
+
