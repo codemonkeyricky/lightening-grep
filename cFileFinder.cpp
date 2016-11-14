@@ -204,8 +204,10 @@ void cFileFinder::exploreDirectory(
 
     auto finish = std::chrono::high_resolution_clock::now();
 
+#if 0
     std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
     cout << "######  files to process " << count << endl;
+#endif 
 
     for ( auto i = 0; i < workerThreads; i ++ )
     {
