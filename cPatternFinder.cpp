@@ -45,7 +45,7 @@ void cPatternFinder::findPattern(
         {
             iSearcher::sFileSummary ssv( path.path, result );
 
-            cPrinter::print( ssv );
+            cPrinter::print( ssv, pattern );
         }
     }
 

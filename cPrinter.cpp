@@ -14,6 +14,7 @@
 #define COLOR_NONE          "\033[0m"
 #define COLOR_LIGHT_CYAN    "\033[1;36m"
 #define COLOR_YELLOW        "\033[1;33m"
+#define COLOR_BG_BLUE       "\033[48;5;27m"
 
 using namespace std;
 
@@ -21,15 +22,25 @@ std::mutex cPrinter::m_lock;
 
 
 void cPrinter::print(
-    iSearcher::sFileSummary & ss
+    iSearcher::sFileSummary & ss,
+    std::string             & pattern
     )
 {
     cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
 
     for ( auto & r : ss.result )
     {
+        auto start = r.content.find( pattern ); 
+        auto len = pattern.size(); 
+
         cout << COLOR_YELLOW << r.line <<
-            COLOR_NONE << " : " << r.content << endl;
+            COLOR_NONE << " : " << 
+            r.content.substr( 0, start ) << 
+            COLOR_BG_BLUE << 
+            r.content.substr( start, len ) << 
+            COLOR_NONE << 
+            r.content.substr( start + len ) << 
+            endl;
     }
 
     cout << endl;
@@ -37,14 +48,15 @@ void cPrinter::print(
 
 
 void cPrinter::print(
-    std::vector< iSearcher::sFileSummary >  & ssv
+    std::vector< iSearcher::sFileSummary >  & ssv, 
+    std::string                             & pattern
     )
 {
     lock_guard< mutex > lock( m_lock );
 
     for ( auto & ss : ssv )
     {
-        print( ss );
+        print( ss, pattern );
 
         cout << endl;
     }
