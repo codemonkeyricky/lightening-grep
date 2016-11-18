@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 
 #include "cPrinter.hpp"
@@ -26,6 +27,8 @@ void cPrinter::print(
     std::string             & pattern
     )
 {
+    lock_guard< mutex > lock( m_lock );
+
     cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
 
     for ( auto & r : ss.result )
@@ -52,6 +55,7 @@ void cPrinter::print(
     std::string                             & pattern
     )
 {
+#if 0
     lock_guard< mutex > lock( m_lock );
 
     for ( auto & ss : ssv )
@@ -60,4 +64,7 @@ void cPrinter::print(
 
         cout << endl;
     }
+#endif
+
+    assert( 0 );
 }

@@ -87,16 +87,20 @@ void cSearcherNative<T>::insertRecord(
     auto start = pos;
     auto end = pos;
 
-    // Find the previous newline.
+    // Find the previous newline, but make sure we don't go out of bound.
     while ( start != mmap && *(--start) != '\n' ) { }
-    if ( start != mmap ) 
+    if ( start != mmap || *start == '\n' ) 
+    {
+        // Account for the odd case where the newline is at the bound.
         start++;
+    }
+
+    // TODO: If the line start is at the previous page the accounting would be wrong. 
 
     // Find the end newline.
     while ( ( end != ( mmap + mmapSize ) ) && *(++end) != '\n' ) { }
 
-    // TODO: If the line straddles between page boundaries the code will not
-    // find the real EOL.
+    // TODO: If the line end is at the next page the accounting would be wrong. 
 
     auto content = string( start, end - start );
 
