@@ -36,14 +36,26 @@ void cPrinter::print(
         auto start = r.content.find( pattern ); 
         auto len = pattern.size(); 
 
+        string toPrint; 
+        if ( start != string::npos )
+        {
+            toPrint = 
+                r.content.substr( 0, start ) + COLOR_BG_BLUE +
+                r.content.substr( start, len ) + COLOR_NONE +
+                r.content.substr( start + len );
+        }
+        else
+        {
+            // TODO: 
+            // This is to work around if the result straddle between pages
+            // and the pattern finder was too lazy to capture the entire line.
+            
+            toPrint = r.content; 
+        }
+
         cout << COLOR_YELLOW << r.line <<
             COLOR_NONE << " : " << 
-            r.content.substr( 0, start ) << 
-            COLOR_BG_BLUE << 
-            r.content.substr( start, len ) << 
-            COLOR_NONE << 
-            r.content.substr( start + len ) << 
-            endl;
+            toPrint << endl; 
     }
 
     cout << endl;
