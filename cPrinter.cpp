@@ -15,7 +15,7 @@
 #define COLOR_NONE          "\033[0m"
 #define COLOR_LIGHT_CYAN    "\033[1;36m"
 #define COLOR_YELLOW        "\033[1;33m"
-#define COLOR_BG_BLUE       "\033[48;5;27m"
+#define COLOR_BG_BLUE       "\033[30;48;5;14m"
 
 using namespace std;
 
