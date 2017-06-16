@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_set>
 #include <cassert>
+#include <experimental/filesystem>
 
 #include "cFileFinder.hpp"
 
@@ -94,117 +95,68 @@ void cFileFinder::exploreDirectory(
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    while ( toExplore.size() > 0 )
+    std::string path( "." );
+    for ( auto & p : std::experimental::filesystem::recursive_directory_iterator( path ) )
     {
-        auto to_explore = toExplore.front();
-        toExplore.pop();
+//        std::cout << p << std::endl;
 
-        auto dirp = opendir( to_explore.c_str() );
+        auto fullpath = p.path().string();
 
-        struct dirent * entry;
-        while ( ( entry = readdir( dirp ) ) != nullptr )
+        auto copy = fullpath;
+        const char *curr = copy.c_str();
+        const char *filename = nullptr;
+        while ( curr = strstr( curr, "/" ) )
         {
-            auto name = entry->d_name;
-            auto name_len = entry->d_reclen;
+            filename = curr;
+            curr ++;
+        }
 
-            if ( entry->d_type == DT_DIR )
-            {
-                if ( strcmp( name, "." ) == 0
-                    || strcmp( name, ".." ) == 0 )
-                {
-                    continue;
-                }
-
-                if ( strncmp( name, ".", 1 ) == 0 )
-                {
-                    // Ignore all hidden directories.
-
-                    continue;
-                }
-
-                string to_add;
-                if ( to_explore != "." )
-                {
-                    to_add += to_explore + "/";
-                }
-
-                to_add += string( name );
-
-                toExplore.push( to_add );
-
-//                cout << "### path : " << to_add << endl;
-            }
-            else
-            {
-                if ( strncmp( name, ".", 1 ) == 0 )
-                {
-                    // Ignore all hidden files.
-
-//                    continue;
-                }
-
-                int allow = 0;
-
-                const char *curr = name;
-                const char *ext = nullptr;
-                while ( curr = strstr( curr, "." ) )
-                {
-                    ext = curr;
-                    curr ++;
-                }
+        auto copy2 = fullpath;
+        curr = copy2.c_str();
+        const char *fileExtenion = nullptr;
+        while ( curr = strstr( curr, "." ) )
+        {
+            fileExtenion = curr;
+            curr ++;
+        }
 
 #if 0
-                if ( ext == nullptr )
-                {
-                    continue;
-                }
+        if ( ext == nullptr )
+        {
+            continue;
+        }
 #endif
 
-                string to_add;
-                if ( to_explore != "." )
-                {
-                    to_add += to_explore + "/";
-                }
-
-                to_add += string( name );
-
-                if (   ( ext != nullptr && filter.find( ext ) != filter.end() ) 
-                    || filter.find( name ) != filter.end ()
-                )
-                {
-                    allow = 1;
-                }
-                else
-                {
-                    if ( scanAllfiles )
-                    {
-                        allow = !isBinary( to_add );
-                    }
-                }
-
-                if ( !allow )
-                {
-//                    cout << "to not add  ## " << name << endl;
-
-                    continue;
-                }
-
-                sSearchEntry se( sSearchEntry::Msg::Search, to_add );
-
-                list.push( se );
-
-//                cout << to_add << endl;
-
-                count ++;
+        int allow = 0;
+        if (   ( fileExtenion != nullptr && filter.find( fileExtenion ) != filter.end() )
+            || filter.find( filename ) != filter.end ()
+        )
+        {
+            allow = 1;
+        }
+        else
+        {
+            if ( scanAllfiles )
+            {
+                allow = !isBinary( fullpath );
             }
         }
 
-        closedir( dirp );
+        if ( !allow )
+        {
+            continue;
+        }
+
+        sSearchEntry se( sSearchEntry::Msg::Search, fullpath );
+
+        list.push( se );
+
+        count ++;
     }
 
     auto finish = std::chrono::high_resolution_clock::now();
 
-#if 0
+#if 1
     std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
     cout << "######  files to process " << count << endl;
 #endif 
