@@ -103,32 +103,18 @@ void cFileFinder::exploreDirectory(
         auto fullpath = p.path().string();
 
         auto copy = fullpath;
-        const char *curr = copy.c_str();
-        const char *filename = nullptr;
-        while ( curr = strstr( curr, "/" ) )
-        {
-            filename = curr;
-            curr ++;
-        }
+        auto lastIndex = fullpath.find_last_of( "/" );
+        auto filename = fullpath.substr( lastIndex + 1 );
 
-        auto copy2 = fullpath;
-        curr = copy2.c_str();
-        const char *fileExtenion = nullptr;
-        while ( curr = strstr( curr, "." ) )
+        lastIndex = filename.find_last_of( "." );
+        std::string fileExtension;
+        if ( lastIndex != std::string::npos )
         {
-            fileExtenion = curr;
-            curr ++;
+            fileExtension = filename.substr( lastIndex + 1 );
         }
-
-#if 0
-        if ( ext == nullptr )
-        {
-            continue;
-        }
-#endif
 
         int allow = 0;
-        if (   ( fileExtenion != nullptr && filter.find( fileExtenion ) != filter.end() )
+        if (   ( fileExtension != "" && filter.find( fileExtension ) != filter.end() )
             || filter.find( filename ) != filter.end ()
         )
         {
