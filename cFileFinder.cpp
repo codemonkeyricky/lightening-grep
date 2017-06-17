@@ -9,7 +9,9 @@
 #include <string>
 #include <unordered_set>
 #include <cassert>
+#if STD_FILESYSTEM
 #include <experimental/filesystem>
+#endif
 
 #include "cFileFinder.hpp"
 
@@ -94,6 +96,118 @@ void cFileFinder::exploreDirectory(
     int count = 0;
 
     auto start = std::chrono::high_resolution_clock::now();
+	
+#if !STD_FILESYSTEM
+	
+	while ( toExplore.size() > 0 )
+    {
+        auto to_explore = toExplore.front();
+        toExplore.pop();
+
+        auto dirp = opendir( to_explore.c_str() );
+
+        struct dirent * entry;
+        while ( ( entry = readdir( dirp ) ) != nullptr )
+        {
+            auto name = entry->d_name;
+            auto name_len = entry->d_reclen;
+
+            if ( entry->d_type == DT_DIR )
+            {
+                if ( strcmp( name, "." ) == 0
+                    || strcmp( name, ".." ) == 0 )
+                {
+                    continue;
+                }
+
+                if ( strncmp( name, ".", 1 ) == 0 )
+                {
+                    // Ignore all hidden directories.
+
+                    continue;
+                }
+
+                string to_add;
+                if ( to_explore != "." )
+                {
+                    to_add += to_explore + "/";
+                }
+
+                to_add += string( name );
+
+                toExplore.push( to_add );
+
+//                cout << "### path : " << to_add << endl;
+            }
+            else
+            {
+                if ( strncmp( name, ".", 1 ) == 0 )
+                {
+                    // Ignore all hidden files.
+
+//                    continue;
+                }
+
+                int allow = 0;
+
+                const char *curr = name;
+                const char *ext = nullptr;
+                while ( curr = strstr( curr, "." ) )
+                {
+                    ext = curr;
+                    curr ++;
+                }
+
+#if 0
+                if ( ext == nullptr )
+                {
+                    continue;
+                }
+#endif
+
+                string to_add;
+                if ( to_explore != "." )
+                {
+                    to_add += to_explore + "/";
+                }
+
+                to_add += string( name );
+
+                if (   ( ext != nullptr && filter.find( ext ) != filter.end() ) 
+                    || filter.find( name ) != filter.end ()
+                )
+                {
+                    allow = 1;
+                }
+                else
+                {
+                    if ( scanAllfiles )
+                    {
+                        allow = !isBinary( to_add );
+                    }
+                }
+
+                if ( !allow )
+                {
+//                    cout << "to not add  ## " << name << endl;
+
+                    continue;
+                }
+
+                sSearchEntry se( sSearchEntry::Msg::Search, to_add );
+
+                list.push( se );
+
+//                cout << to_add << endl;
+
+                count ++;
+            }
+        }
+
+        closedir( dirp );
+    }
+	
+#else
 
     std::string path( "." );
     for ( auto & p : std::experimental::filesystem::recursive_directory_iterator( path ) )
@@ -139,10 +253,12 @@ void cFileFinder::exploreDirectory(
 
         count ++;
     }
+	
+#endif
 
     auto finish = std::chrono::high_resolution_clock::now();
 
-#if 1
+#if 0
     std::cout << "File Search took " << std::chrono::duration_cast<std::chrono::microseconds>(finish - start).count() << " us" << endl;
     cout << "######  files to process " << count << endl;
 #endif 
