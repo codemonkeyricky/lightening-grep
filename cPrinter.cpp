@@ -21,10 +21,9 @@ using namespace std;
 
 std::mutex cPrinter::m_lock;
 
-
 void cPrinter::print(
-    iGrepEngine::sFileSummary & ss,
-    std::string             & pattern
+    sFileSummary   &ss,
+    std::string    &pattern
     )
 {
     lock_guard< mutex > lock( m_lock );
@@ -64,7 +63,7 @@ void cPrinter::print(
 
 
 void cPrinter::print(
-    std::vector< iGrepEngine::sFileSummary >  & ssv, 
+    std::vector< sFileSummary >  & ssv,
     std::string                             & pattern
     )
 {

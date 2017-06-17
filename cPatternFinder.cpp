@@ -41,7 +41,7 @@ void cPatternFinder::findPattern(
 
         if ( result.size() > 0 )
         {
-            iGrepEngine::sFileSummary ssv( path.path, result );
+            sFileSummary ssv( path.path, result );
 
             cPrinter::print( ssv, pattern );
         }

@@ -118,7 +118,7 @@ void cGrepEngineNative<T>::insertRecord(
 
 
 template< class T >
-vector< iGrepEngine::sMatchInstance > cGrepEngineNative<T>::process(
+vector< sMatchInstance > cGrepEngineNative<T>::process(
     string & filename
     )
 {

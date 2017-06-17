@@ -3,32 +3,11 @@
 #include <vector>
 #include <string>
 
+#include "sGrepCommon.hpp"
+
 class iGrepEngine
 {
 public:
-
-    struct sMatchInstance
-    {
-        sMatchInstance( uint32_t line, uint32_t offset, std::string & content ) :
-            line( line ), offset( offset ), content( content )
-        { }
-
-        uint32_t    line;
-        uint32_t    offset;
-        std::string content;
-    };
-
-    struct sFileSummary
-    {
-        sFileSummary(
-            std::string             & name,
-            std::vector< sMatchInstance > & result
-        ) : name( name ), result( result )
-        { }
-
-        std::string             name;
-        std::vector< sMatchInstance > result;
-    };
 
     int MMAP_SIZE   = 4096 * 4;
 

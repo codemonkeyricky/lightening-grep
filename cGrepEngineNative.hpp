@@ -4,6 +4,7 @@
 #include <immintrin.h>
 
 #include "iGrepEngine.hpp"
+#include "sGrepCommon.hpp"
 
 constexpr int PATTERN_SIZE_MAX       = 64;
 constexpr int ALIGNMENT              = 32;
