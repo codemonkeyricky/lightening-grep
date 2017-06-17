@@ -70,7 +70,7 @@ void cFileFinder::exploreDirectory(
     int                         workerThreads,
     std::string                 root,
     std::vector< std::string > &filters,
-    iQueue< sSearchEntry >     &list
+    iQueue< sGrepEntry >     &list
     )
 {
     bool scanAllfiles = ( filters.size() == 0 ) ? true : false;
@@ -194,7 +194,7 @@ void cFileFinder::exploreDirectory(
                     continue;
                 }
 
-                sSearchEntry se( sSearchEntry::Msg::Search, to_add );
+                sGrepEntry se( sGrepEntry::Msg::Search, to_add );
 
                 list.push( se );
 
@@ -247,7 +247,7 @@ void cFileFinder::exploreDirectory(
             continue;
         }
 
-        sSearchEntry se( sSearchEntry::Msg::Search, fullpath );
+        sGrepEntry se( sGrepEntry::Msg::Search, fullpath );
 
         list.push( se );
 
@@ -266,7 +266,7 @@ void cFileFinder::exploreDirectory(
     for ( auto i = 0; i < workerThreads; i ++ )
     {
         string empty;
-        sSearchEntry se( sSearchEntry::Msg::Done, empty );
+        sGrepEntry se( sGrepEntry::Msg::Done, empty );
 
         list.push( se );
     }

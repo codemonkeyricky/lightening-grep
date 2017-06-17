@@ -1,5 +1,3 @@
-#include "cSearcherNative.hpp"
-
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -10,11 +8,12 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include "cGrepEngineNative.hpp"
 
 using namespace std;
 
 template< class T >
-cSearcherNative<T>::cSearcherNative(
+cGrepEngineNative<T>::cGrepEngineNative(
     string &pattern
     ) : m_pattern( pattern )
 {
@@ -23,14 +22,14 @@ cSearcherNative<T>::cSearcherNative(
 
 
 template< class T >
-cSearcherNative<T>::~cSearcherNative()
+cGrepEngineNative<T>::~cGrepEngineNative()
 {
 
 }
 
 
 template< class T >
-void cSearcherNative<T>::populatePatternVariables()
+void cGrepEngineNative<T>::populatePatternVariables()
 {
     alignas( ALIGNMENT ) char first8bitsRepeated[ simd_traits< T >::size ];
     memset( first8bitsRepeated, m_pattern[ 0 ], simd_traits< T >::size );
@@ -59,7 +58,7 @@ void cSearcherNative<T>::populatePatternVariables()
 
 
 template< class T >
-void cSearcherNative<T>::insertRecord(
+void cGrepEngineNative<T>::insertRecord(
     const char                 *mmap,
     int                         mmapSize,
     const char                 *curr,
@@ -119,7 +118,7 @@ void cSearcherNative<T>::insertRecord(
 
 
 template< class T >
-vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
+vector< iGrepEngine::sMatchInstance > cGrepEngineNative<T>::process(
     string & filename
     )
 {
@@ -235,7 +234,7 @@ vector< iSearcher::sMatchInstance > cSearcherNative<T>::process(
 
 #if defined( __AVX__ ) 
 template<>
-inline __m128i cSearcherNative< AVX >::vector_load(
+inline __m128i cGrepEngineNative< AVX >::vector_load(
     const __m128i * input
     )
 {
@@ -244,7 +243,7 @@ inline __m128i cSearcherNative< AVX >::vector_load(
 
 
 template<>
-inline __m128i cSearcherNative< AVX >::vector_compare(
+inline __m128i cGrepEngineNative< AVX >::vector_compare(
     __m128i & a,
     __m128i & b
     )
@@ -254,7 +253,7 @@ inline __m128i cSearcherNative< AVX >::vector_compare(
 
 
 template<>
-inline unsigned int cSearcherNative< AVX >::vector_to_bitmask(
+inline unsigned int cGrepEngineNative< AVX >::vector_to_bitmask(
     __m128i & input
     )
 {
@@ -263,7 +262,7 @@ inline unsigned int cSearcherNative< AVX >::vector_to_bitmask(
 
 
 template<>
-inline unsigned int cSearcherNative< AVX >::int_bits_count(
+inline unsigned int cGrepEngineNative< AVX >::int_bits_count(
     unsigned int & input
     )
 {
@@ -274,7 +273,7 @@ inline unsigned int cSearcherNative< AVX >::int_bits_count(
 
 #if defined( __AVX2__ ) 
 template<>
-inline __m256i cSearcherNative< AVX2 >::vector_load(
+inline __m256i cGrepEngineNative< AVX2 >::vector_load(
     const __m256i * input
     )
 {
@@ -283,7 +282,7 @@ inline __m256i cSearcherNative< AVX2 >::vector_load(
 
 //
 template<>
-inline __m256i cSearcherNative< AVX2 >::vector_compare(
+inline __m256i cGrepEngineNative< AVX2 >::vector_compare(
     __m256i & a,
     __m256i & b
     )
@@ -293,7 +292,7 @@ inline __m256i cSearcherNative< AVX2 >::vector_compare(
 
 
 template<>
-inline unsigned int cSearcherNative< AVX2 >::vector_to_bitmask(
+inline unsigned int cGrepEngineNative< AVX2 >::vector_to_bitmask(
     __m256i & input
     )
 {
@@ -302,7 +301,7 @@ inline unsigned int cSearcherNative< AVX2 >::vector_to_bitmask(
 
 
 template<>
-inline unsigned int cSearcherNative< AVX2 >::int_bits_count(
+inline unsigned int cGrepEngineNative< AVX2 >::int_bits_count(
     unsigned int & input
     )
 {

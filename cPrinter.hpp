@@ -2,14 +2,14 @@
 
 #include <mutex>
 
-#include "iSearcher.hpp"
+#include "iGrepEngine.hpp"
 
 class cPrinter
 {
 public:
-    static void print( std::vector< iSearcher::sFileSummary > &, std::string & );
+    static void print( std::vector< iGrepEngine::sFileSummary > &, std::string & );
 
-    static void print( iSearcher::sFileSummary &, std::string & );
+    static void print( iGrepEngine::sFileSummary &, std::string & );
 
 private:
     static std::mutex      m_lock;

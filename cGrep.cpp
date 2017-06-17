@@ -10,10 +10,10 @@
 #include "cGrep.hpp"
 
 #include "cFileFinder.hpp"
+#include "cGrepEngineNative.hpp"
 #include "cPatternFinder.hpp"
 #include "cPrinter.hpp"
-#include "cSearcherNative.hpp"
-#include "sSearchCommon.hpp"
+#include "sGrepCommon.hpp"
 
 using namespace std;
 
@@ -41,16 +41,16 @@ cGrep::~cGrep()
 
 void cGrep::startProducer(
     vector< thread >        &pool,
-    iQueue< sSearchEntry >  &list
+    iQueue< sGrepEntry >  &list
     )
 {
     if ( m_filePath != "" )
     {
-        sSearchEntry se( sSearchEntry::Msg::Search, m_filePath );
+        sGrepEntry se( sGrepEntry::Msg::Search, m_filePath );
         list.push( se );
 
         string empty;
-        sSearchEntry done( sSearchEntry::Msg::Done, empty );
+        sGrepEntry done( sGrepEntry::Msg::Done, empty );
         list.push( done );
 
         return;
@@ -74,7 +74,7 @@ void cGrep::startProducer(
 
 void cGrep::startConsumer(
     vector< thread >        &pool,
-    iQueue< sSearchEntry >  &list
+    iQueue< sGrepEntry >  &list
     )
 {
     int cap;
@@ -98,7 +98,7 @@ void cGrep::startConsumer(
 void cGrep::start()
 {
     vector< thread >        pool;
-    cQueue< sSearchEntry >  list;
+    cQueue< sGrepEntry >  list;
 
     startProducer( pool, list );
 

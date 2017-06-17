@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-class iSearcher
+class iGrepEngine
 {
 public:
 

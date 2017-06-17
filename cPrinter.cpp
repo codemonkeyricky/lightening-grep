@@ -23,13 +23,13 @@ std::mutex cPrinter::m_lock;
 
 
 void cPrinter::print(
-    iSearcher::sFileSummary & ss,
+    iGrepEngine::sFileSummary & ss,
     std::string             & pattern
     )
 {
     lock_guard< mutex > lock( m_lock );
 
-    ss.name.erase( 0, 2 );
+//    ss.name.erase( 0, 2 );
     cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
 
     for ( auto & r : ss.result )
@@ -64,7 +64,7 @@ void cPrinter::print(
 
 
 void cPrinter::print(
-    std::vector< iSearcher::sFileSummary >  & ssv, 
+    std::vector< iGrepEngine::sFileSummary >  & ssv, 
     std::string                             & pattern
     )
 {

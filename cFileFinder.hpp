@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "cQueue.hpp"
-#include "sSearchCommon.hpp"
+#include "sGrepCommon.hpp"
 
 class cFileFinder
 {
@@ -13,7 +13,7 @@ public:
         int                         workerThreads,
         std::string                 root,
         std::vector< std::string > &filter,
-        iQueue< sSearchEntry >     &list
+        iQueue< sGrepEntry >     &list
         );
 };
 

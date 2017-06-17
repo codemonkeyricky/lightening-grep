@@ -13,8 +13,8 @@
 
 #include "cFileFinder.hpp"
 #include "cGrep.hpp"
+#include "cGrepEngineNative.hpp"
 #include "cPrinter.hpp"
-#include "cSearcherNative.hpp"
 
 using namespace std;
 

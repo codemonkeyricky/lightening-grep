@@ -3,7 +3,7 @@
 #include <vector>
 #include <immintrin.h>
 
-#include "iSearcher.hpp"
+#include "iGrepEngine.hpp"
 
 constexpr int PATTERN_SIZE_MAX       = 64;
 constexpr int ALIGNMENT              = 32;
@@ -36,14 +36,14 @@ struct simd_traits< AVX2 >
 
 
 template< class T >
-class cSearcherNative : public iSearcher
+class cGrepEngineNative : public iGrepEngine
 {
 public:
 
     typedef typename simd_traits< T >::type vec_type;
 
-    cSearcherNative( std::string & pattern );
-    ~cSearcherNative();
+    cGrepEngineNative( std::string & pattern );
+    ~cGrepEngineNative();
 
     inline vec_type vector_load( const vec_type * ) { vec_type temp; return temp; }
     inline vec_type vector_compare( vec_type &, vec_type & ) { vec_type temp; return temp; }

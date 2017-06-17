@@ -1,7 +1,7 @@
 #pragma once
 
 #include "iQueue.hpp"
-#include "sSearchCommon.hpp"
+#include "sGrepCommon.hpp"
 
 class cPatternFinder
 {
@@ -13,6 +13,5 @@ public:
         AVX2    = 0x02
     };
 
-    static void findPattern( int, int, iQueue< sSearchEntry > *, string );
+    static void findPattern( int, int, iQueue< sGrepEntry > *, std::string );
 }; 
-

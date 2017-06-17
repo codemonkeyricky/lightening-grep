@@ -2,33 +2,31 @@
 
 
 #include "cPrinter.hpp"
-#include "cSearcherNative.hpp"
 #include "cPatternFinder.hpp"
+#include "cGrepEngineNative.hpp"
 
 using namespace std; 
 
 void cPatternFinder::findPattern(
     int                     workerId,
     int                     cap,
-    iQueue< sSearchEntry > *fileList,
+    iQueue< sGrepEntry >   *fileList,
     string                  pattern
     )
 {
-    iSearcher  *searcher;
-    cSearcherNative< AVX >  savx( pattern );
-    cSearcherNative< AVX2 >  savx2( pattern );
+    iGrepEngine  *searcher;
+    cGrepEngineNative< AVX >  savx( pattern );
+    cGrepEngineNative< AVX2 >  savx2( pattern );
 
     searcher = ( cap & static_cast< int >( Capability::AVX2 ) ) ?
-        static_cast< iSearcher * >( &savx2 ) :
-        static_cast< iSearcher * >( &savx );
+        static_cast< iGrepEngine * >( &savx2 ) :
+        static_cast< iGrepEngine * >( &savx );
 
     // auto start = std::chrono::high_resolution_clock::now();
 
-    vector< iSearcher::sFileSummary > ssv;
-
     while ( true )
     {
-        sSearchEntry path;
+        sGrepEntry path;
         if ( !fileList->pop( path ) )
         {
             usleep( 1 );
@@ -36,14 +34,14 @@ void cPatternFinder::findPattern(
             continue;
         }
 
-        if ( path.msg == sSearchEntry::Msg::Done )
+        if ( path.msg == sGrepEntry::Msg::Done )
             break;
 
         auto result = searcher->process( path.path );
 
         if ( result.size() > 0 )
         {
-            iSearcher::sFileSummary ssv( path.path, result );
+            iGrepEngine::sFileSummary ssv( path.path, result );
 
             cPrinter::print( ssv, pattern );
         }

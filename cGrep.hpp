@@ -4,7 +4,7 @@
 #include <string>
 
 #include "iQueue.hpp"
-#include "sSearchCommon.hpp"
+#include "sGrepCommon.hpp"
 
 class cGrep
 {
@@ -18,8 +18,8 @@ public:
     static bool avx2_support;
 
 private:
-    void startProducer( std::vector< std::thread > &, iQueue< sSearchEntry > & );
-    void startConsumer( std::vector< std::thread > &, iQueue< sSearchEntry > & );
+    void startProducer( std::vector< std::thread > &, iQueue< sGrepEntry > & );
+    void startConsumer( std::vector< std::thread > &, iQueue< sGrepEntry > & );
 
     int                         m_workerThreads = 4;
     std::string                 m_filePath;
