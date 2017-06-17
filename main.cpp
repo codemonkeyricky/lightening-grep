@@ -11,7 +11,6 @@
 #include <thread>
 #include <atomic>
 
-#include "SearcherRabinKarpAVX2.hpp"
 #include "cFileFinder.hpp"
 #include "cGrep.hpp"
 #include "cPrinter.hpp"
