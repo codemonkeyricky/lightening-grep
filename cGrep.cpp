@@ -13,7 +13,7 @@
 #include "cGrepEngineNative.hpp"
 #include "cPatternFinder.hpp"
 #include "cPrinter.hpp"
-#include "sGrepCommon.hpp"
+#include "GrepCommon.hpp"
 
 using namespace std;
 
@@ -21,13 +21,15 @@ bool cGrep::avx_support = 0;
 bool cGrep::avx2_support = 0;
 
 cGrep::cGrep(
-    std::string            & filePath,
-    std::string            & pattern,
-    std::vector< std::string >   & filters
+    std::string                &filePath,
+    std::string                &pattern,
+    std::vector< std::string > &filters,
+    iGrepSearchSummary         *ss
     )
 : m_filePath( filePath ),
   m_pattern( pattern ),
-  m_filters( filters )
+  m_filters( filters ),
+  m_summary( ss )
 {
     avx_support     = __builtin_cpu_supports( "avx" );
     avx2_support    = __builtin_cpu_supports( "avx2" );
@@ -85,12 +87,12 @@ void cGrep::startConsumer(
     {
         for ( auto i = 0; i < m_workerThreads; i ++ )
         {
-            pool.emplace_back( cPatternFinder::findPattern, i, cap, &list, m_pattern );
+            pool.emplace_back( cPatternFinder::findPattern, i, cap, &list, m_pattern, m_summary );
         }
     }
     else
     {
-        cPatternFinder::findPattern( 0, cap, &list, m_pattern );
+        cPatternFinder::findPattern( 0, cap, &list, m_pattern, m_summary );
     }
 }
 
