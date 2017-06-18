@@ -18,6 +18,29 @@
 
 using namespace std;
 
+class cGrepSearchSummaryPrinter : public iGrepSearchSummary
+{
+public:
+    cGrepSearchSummaryPrinter( std::string & pattern )
+        : m_pattern( pattern )
+    { }
+
+    ~cGrepSearchSummaryPrinter() { }
+
+    virtual void push( sGrepFileSummary & fs )
+    {
+        cPrinter::print( fs, m_pattern );
+    }
+
+    virtual bool pop( sGrepFileSummary & fs )
+    { }
+
+private:
+    std::string m_pattern;
+};
+
+
+
 int main(
     int argc,
     char **argv
@@ -67,7 +90,7 @@ int main(
         index ++;
     }
 
-    sGrepSearchSummary  ss;
+    cGrepSearchSummaryPrinter  ss( pattern );
     cGrep grepper( path, pattern, filters, &ss );
     grepper.start();
 
@@ -78,6 +101,6 @@ int main(
 //    {
 //        thread.join();
 //    }
-//
+
     return 0;
 }

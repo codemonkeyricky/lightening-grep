@@ -9,7 +9,7 @@ class cPrinter
 {
 public:
     static void print( sGrepFileSummary &, std::string & );
-    static void processor( sGrepSearchSummary &, std::string & );
+//    static void processor( sGrepSearchSummary &, std::string & );
 
 private:
     static std::mutex   m_lock;

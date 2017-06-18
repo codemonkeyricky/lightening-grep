@@ -9,7 +9,7 @@
 class cGrep
 {
 public:
-    cGrep( std::string &, std::string &, std::vector< std::string > &, sGrepSearchSummary * );
+    cGrep( std::string &, std::string &, std::vector< std::string > &, iGrepSearchSummary * );
     ~cGrep();
 
     void start();
@@ -25,5 +25,5 @@ private:
     std::string                 m_filePath;
     std::string                 m_pattern;
     std::vector< std::string >  m_filters;
-    sGrepSearchSummary         *m_summary;
+    iGrepSearchSummary         *m_summary;
 };

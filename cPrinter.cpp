@@ -64,6 +64,7 @@ void cPrinter::print(
 }
 
 
+#if 0
 void cPrinter::processor(
     sGrepSearchSummary &ss,
     std::string        &pattern
@@ -80,3 +81,4 @@ void cPrinter::processor(
         usleep( 1 );
     }
 }
+#endif

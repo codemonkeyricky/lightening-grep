@@ -47,7 +47,19 @@ struct sGrepFileSummary
 };
 
 
-class sGrepSearchSummary
+class iGrepSearchSummary
+{
+public: 
+    iGrepSearchSummary() { } 
+    ~iGrepSearchSummary() { } 
+
+    virtual void push( sGrepFileSummary & fs ) = 0; 
+    virtual bool pop( sGrepFileSummary & fs ) = 0; 
+}; 
+
+
+#if 0
+class sGrepSearchSummary : public iGrepSearchSummary
 {
 public:
     sGrepSearchSummary() { }
@@ -85,3 +97,4 @@ private:
     std::mutex                      m_lock;
     std::queue< sGrepFileSummary >  result;
 };
+#endif

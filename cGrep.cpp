@@ -24,7 +24,7 @@ cGrep::cGrep(
     std::string                &filePath,
     std::string                &pattern,
     std::vector< std::string > &filters,
-    sGrepSearchSummary         *ss
+    iGrepSearchSummary         *ss
     )
 : m_filePath( filePath ),
   m_pattern( pattern ),
