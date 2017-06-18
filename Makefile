@@ -1,15 +1,13 @@
 CXX 		:= g++
-# CXX 		:= clang++-3.6
 
-CXXFLAGS 	:= -march=native
+CFLAGS 		:= -O3 -Igrep
+LDFLAGS		:= -Lgrep -lgrep -lpthread 
 
-DFLAGS 		:= -g -O0
-RFLAGS 		:= -g -O3
-LDFLAGS		:= -lpthread # -lstdc++fs
+all : main.o
+	$(CXX) $(CFLAGS) $^ -std=gnu++11 -o gg $(LDFLAGS) 
 
-all : main.cpp cPatternFinder.cpp cFileFinder.cpp cPrinter.cpp cGrep.cpp cQueueLockless.cpp
-	$(CXX) $(CXXFLAGS) $(DFLAGS) $^ $(LDFLAGS) -std=gnu++11 -o gg_debug
-	$(CXX) $(CXXFLAGS) $(RFLAGS) $^ $(LDFLAGS) -std=gnu++11 -o gg
+main.o : main.cpp 
+	$(CXX) -Igrep -std=gnu++11 -c -o main.o main.cpp
 
 install : 
 	cp gg /usr/local/bin

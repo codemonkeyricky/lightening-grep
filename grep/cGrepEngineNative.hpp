@@ -67,5 +67,5 @@ private:
     std::string m_pattern;
 };
 
-#include "tSearcherNative.cpp"
+#include "tSearcherNative.tpp"
 
