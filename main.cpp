@@ -1,19 +1,6 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <immintrin.h>
-#include <assert.h>
-#include <cstdio>
-#include <string>
 #include <cstring>
-#include <iostream>
-#include <vector>
-#include <thread>
-#include <atomic>
 
-#include "cFileFinder.hpp"
 #include "cGrep.hpp"
-#include "cGrepEngineNative.hpp"
 #include "cPrinter.hpp"
 
 using namespace std;
@@ -38,8 +25,6 @@ public:
 private:
     std::string m_pattern;
 };
-
-
 
 int main(
     int argc,
