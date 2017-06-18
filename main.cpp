@@ -67,8 +67,17 @@ int main(
         index ++;
     }
 
-    cGrep grepper( path, pattern, filters );
+    sGrepSearchSummary  ss;
+    cGrep grepper( path, pattern, filters, &ss );
     grepper.start();
 
+//    std::vector< std::thread >    pool;
+//    pool.emplace_back( cPrinter::processor, std::ref( ss ), std::ref( pattern ) );
+//
+//    for ( auto & thread : pool )
+//    {
+//        thread.join();
+//    }
+//
     return 0;
 }

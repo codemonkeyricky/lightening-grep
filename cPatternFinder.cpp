@@ -11,7 +11,8 @@ void cPatternFinder::findPattern(
     int                     workerId,
     int                     cap,
     iQueue< sGrepEntry >   *fileList,
-    string                  pattern
+    string                  pattern,
+    sGrepSearchSummary     *summary
     )
 {
     iGrepEngine  *searcher;
@@ -41,7 +42,9 @@ void cPatternFinder::findPattern(
 
         if ( result.size() > 0 )
         {
-            sFileSummary ssv( path.path, result );
+            sGrepFileSummary ssv( path.path, result );
+
+//            summary->push( ssv );
 
             cPrinter::print( ssv, pattern );
         }

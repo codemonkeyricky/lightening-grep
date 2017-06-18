@@ -64,7 +64,7 @@ void cGrepEngineNative<T>::insertRecord(
     const char                 *curr,
     const char                 *pattern,
     int                         currline,
-    vector< sMatchInstance >   &summary
+    vector< sGrepMatchInstance >   &summary
     )
 {
     // Pattern found.
@@ -118,7 +118,7 @@ void cGrepEngineNative<T>::insertRecord(
 
 
 template< class T >
-vector< sMatchInstance > cGrepEngineNative<T>::process(
+vector< sGrepMatchInstance > cGrepEngineNative<T>::process(
     string & filename
     )
 {
@@ -130,7 +130,7 @@ vector< sMatchInstance > cGrepEngineNative<T>::process(
     // Limit for now.
     assert( m_pattern.size() <= PATTERN_SIZE_MAX );
 
-    vector< sMatchInstance > summary;
+    vector< sGrepMatchInstance > summary;
     int ln = 0;
 
     alignas( ALIGNMENT ) char mm[ MMAP_SIZE ];

@@ -3,13 +3,13 @@
 #include <vector>
 #include <string>
 
+#include "GrepCommon.hpp"
 #include "iQueue.hpp"
-#include "sGrepCommon.hpp"
 
 class cGrep
 {
 public:
-    cGrep( std::string &, std::string &, std::vector< std::string > & );
+    cGrep( std::string &, std::string &, std::vector< std::string > &, sGrepSearchSummary * );
     ~cGrep();
 
     void start();
@@ -25,4 +25,5 @@ private:
     std::string                 m_filePath;
     std::string                 m_pattern;
     std::vector< std::string >  m_filters;
+    sGrepSearchSummary         *m_summary;
 };

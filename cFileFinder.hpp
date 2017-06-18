@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "cQueue.hpp"
-#include "sGrepCommon.hpp"
+#include "GrepCommon.hpp"
 
 class cFileFinder
 {

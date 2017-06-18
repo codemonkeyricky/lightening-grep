@@ -3,8 +3,8 @@
 #include <vector>
 #include <immintrin.h>
 
+#include "GrepCommon.hpp"
 #include "iGrepEngine.hpp"
-#include "sGrepCommon.hpp"
 
 constexpr int PATTERN_SIZE_MAX       = 64;
 constexpr int ALIGNMENT              = 32;
@@ -51,14 +51,14 @@ public:
     inline unsigned int vector_to_bitmask( vec_type & ) { return 0; }
     inline unsigned int int_bits_count( unsigned int & ) { return 0; } 
 
-    virtual std::vector< sMatchInstance > process( std::string & filename );
+    virtual std::vector< sGrepMatchInstance > process( std::string & filename );
 
     static const int REGISTERS_REQUIRED = PATTERN_SIZE_MAX / simd_traits< T >::size;
 
 private:
 
     void populatePatternVariables();
-    void insertRecord( const char *, int, const char *, const char *, int, std::vector< sMatchInstance > & );
+    void insertRecord( const char *, int, const char *, const char *, int, std::vector< sGrepMatchInstance > & );
 
     vec_type firstLetterRepated;
     vec_type nl_vec;

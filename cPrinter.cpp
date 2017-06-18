@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include <cassert>
 #include <iostream>
 
@@ -22,7 +24,7 @@ using namespace std;
 std::mutex cPrinter::m_lock;
 
 void cPrinter::print(
-    sFileSummary   &ss,
+    sGrepFileSummary   &ss,
     std::string    &pattern
     )
 {
@@ -62,21 +64,19 @@ void cPrinter::print(
 }
 
 
-void cPrinter::print(
-    std::vector< sFileSummary >  & ssv,
-    std::string                             & pattern
+void cPrinter::processor(
+    sGrepSearchSummary &ss,
+    std::string        &pattern
     )
 {
-#if 0
-    lock_guard< mutex > lock( m_lock );
-
-    for ( auto & ss : ssv )
+    while ( true )
     {
-        print( ss, pattern );
+        sGrepFileSummary fs;
+        while ( ss.pop( fs ) )
+        {
+            print( fs, pattern );
+        }
 
-        cout << endl;
+        usleep( 1 );
     }
-#endif
-
-    assert( 0 );
 }
