@@ -1,11 +1,10 @@
 .PHONY : clean 
 
 # CXX 		:= g++
-CPPFLAGS 	:= -march=native -std=gnu++11 -O3
-CPPFLAGS_D 	:= -march=native -std=gnu++11 -O0 -g
+CPPFLAGS 	:= -march=native -std=gnu++11 -Iapi -O3
+CPPFLAGS_D 	:= -march=native -std=gnu++11 -Iapi -O0 -g
 
-SOURCES     = $(shell echo *.cpp)
-HEADERS     = $(shell echo *.hpp)
+SOURCES     = $(shell echo src/*.cpp)
 OBJECTS     = $(SOURCES:.cpp=.o)
 OBJECTS_D   = $(SOURCES:.cpp=_g.o)
 
