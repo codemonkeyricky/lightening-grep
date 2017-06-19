@@ -30,7 +30,6 @@ void cPrinter::print(
 {
     lock_guard< mutex > lock( m_lock );
 
-//    ss.name.erase( 0, 2 );
     cout << COLOR_LIGHT_CYAN << ss.name << COLOR_NONE << endl;
 
     for ( auto & r : ss.result )

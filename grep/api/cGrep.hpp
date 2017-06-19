@@ -10,15 +10,20 @@
 class cGrep
 {
 public:
-    cGrep( std::string &, std::string &, std::vector< std::string > &, iGrepSearchSummary * );
+    cGrep( 
+        std::string                &path, 
+        std::string                &pattern, 
+        std::vector< std::string > &filters, 
+        iGrepSearchSummary         *summary
+        );
     ~cGrep();
 
     void start();
 
+private:
     static bool avx_support;
     static bool avx2_support;
 
-private:
     void startProducer( std::vector< std::thread > &, iQueue< sGrepEntry > & );
     void startConsumer( std::vector< std::thread > &, iQueue< sGrepEntry > & );
 

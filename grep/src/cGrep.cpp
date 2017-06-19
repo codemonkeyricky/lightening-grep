@@ -12,7 +12,6 @@
 #include "cFileFinder.hpp"
 #include "cGrepEngineNative.hpp"
 #include "cPatternFinder.hpp"
-#include "cPrinter.hpp"
 #include "GrepCommon.hpp"
 
 using namespace std;

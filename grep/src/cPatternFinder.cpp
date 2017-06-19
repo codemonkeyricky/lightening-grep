@@ -1,7 +1,6 @@
 #include <vector>
 
 
-#include "cPrinter.hpp"
 #include "cPatternFinder.hpp"
 #include "cGrepEngineNative.hpp"
 
