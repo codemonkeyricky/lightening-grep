@@ -4,16 +4,16 @@ CFLAGS 		:= -Igrep/api -std=gnu++11
 LDFLAGS		:= -Lgrep -lgrep -lpthread 
 LDFLAGS_D   := -Lgrep -lgrep_d -lpthread 
 
-all : main_g.o main.o
+all : gg_g.o gg.o
 	make -C grep
-	$(CXX) $(CFLAGS) main.o -o gg $(LDFLAGS)           # release
-	$(CXX) $(CFLAGS) main_g.o -o gg_debug $(LDFLAGS_D) # debug
+	$(CXX) $(CFLAGS) gg.o -o gg $(LDFLAGS)           # release
+	$(CXX) $(CFLAGS) gg_g.o -o gg_debug $(LDFLAGS_D) # debug
 
-main_g.o : main.cpp
-	$(CXX) $(CFLAGS) -O0 -c -o main_g.o $<
+gg_g.o : gg.cpp
+	$(CXX) $(CFLAGS) -O0 -c -o gg_g.o $<
 
-main.o : main.cpp
-	$(CXX) $(CFLAGS) -O3 -c -o main.o $<
+gg.o : gg.cpp
+	$(CXX) $(CFLAGS) -O3 -c -o gg.o $<
 
 install : 
 	cp gg /usr/local/bin
