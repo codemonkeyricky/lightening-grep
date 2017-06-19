@@ -15,5 +15,10 @@ gg_g.o : gg.cpp
 gg.o : gg.cpp
 	$(CXX) $(CFLAGS) -O3 -c -o gg.o $<
 
+rc : rc.cpp 
+	make -C grep 
+	$(CXX) $(CFLAGS) -O0 -g -c -o rc_g.o $<
+	$(CXX) $(CFLAGS) rc_g.o -o rc $(LDFLAGS_D) # debug
+
 install : 
 	cp gg /usr/local/bin
