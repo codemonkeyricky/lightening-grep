@@ -18,7 +18,9 @@ gg.o : gg.cpp
 rc : rc.cpp 
 	make -C grep 
 	$(CXX) $(CFLAGS) -O0 -g -c -o rc_g.o $<
-	$(CXX) $(CFLAGS) rc_g.o -o rc $(LDFLAGS_D) # debug
+	$(CXX) $(CFLAGS) rc_g.o -o rc_debug $(LDFLAGS_D) # debug
+	$(CXX) $(CFLAGS) -O3 -g -c -o rc.o $<
+	$(CXX) $(CFLAGS) rc.o -o rc $(LDFLAGS) # debug
 
 install : 
 	cp gg /usr/local/bin
