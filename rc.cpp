@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <stack>
 
 #include "cGrep.hpp"
 
@@ -190,13 +191,46 @@ int main(
     char **argv
     )
 {
+    std::stack< std::vector< std::string > > callerStack; 
     std::string pattern; 
     pattern = argv[ 1 ]; 
 
+
     auto callers = findCallers( pattern );
 
-    for ( auto & c : callers )
+    callerStack.push( callers ); 
+
+    while ( callerStack.size() > 0 )
     {
-        std::cout << c << std::endl;
+        // Get top level list.
+        auto & callers = callerStack.top(); 
+        if ( callers.size() == 0 )
+        {
+            // If list empty pop and retry.
+            callerStack.pop(); 
+
+            continue;
+        }
+
+        // Get first entry in list & don't forget to remove.
+        auto to_grep = callers[ 0 ]; 
+        callers.erase( callers.begin() ); 
+        
+        // Find all references & push if not empty.
+        auto r = findCallers( to_grep ); 
+        if ( r.size() > 0 )
+        {
+            callerStack.push( r ); 
+        }
+
+        // Print caller.
+        auto indents = callerStack.size(); 
+        for ( auto i = 0; i < indents; i++ )
+        {
+            std::cout << "    ";
+        }
+
+        std::cout << to_grep << std::endl;
     }
 }
+
