@@ -1,6 +1,8 @@
 // rc: reverse calltree utility 
 
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 
 #include "cGrep.hpp"
 
@@ -12,24 +14,165 @@ public:
 
     virtual void push( sGrepFileSummary & fs )
     {
-        std::cout << fs.name << std::endl; 
+        std::lock_guard< std::mutex > l( m_lock );
+
+        m_queue.push( fs ); 
+
+        // std::cout << fs.name << std::endl; 
     }
 
     virtual bool pop( sGrepFileSummary & fs )
     {
+        std::lock_guard< std::mutex > l( m_lock );
 
+        if ( m_queue.size() == 0 ) 
+            return false; 
+
+        fs = m_queue.front(); 
+        m_queue.pop();
+
+        return true;
     }
+
+private: 
+    std::mutex  m_lock;
+    std::queue< sGrepFileSummary > m_queue; 
 }; 
+
+
+std::string findContainingFunction( 
+    std::string    &filename, 
+    uint32_t        lineNum
+    )
+{
+    std::fstream f( filename ); 
+
+    uint32_t curr = 0; 
+    std::string line; 
+    uint32_t bm;
+    while ( curr < lineNum )
+    {
+        std::getline( f, line ); 
+
+        if ( line[ 0 ] == '{' ) 
+        {
+            bm = f.tellp();
+        }
+    
+        curr ++;
+    }
+
+    // bm points to beginning of function. 
+    // Now extract function name.
+
+    #define NONE    0
+    #define EXTRACT 1
+
+    curr = 0;
+    int mode = NONE;
+    std::string function; 
+    while ( curr < bm )
+    {
+        f.seekp( bm - curr ); 
+
+        char c; 
+        f.get( c );
+
+        if ( mode == EXTRACT ) 
+        {
+            if ( c == ' ' || c == '\n' )
+            {
+                break; 
+            }
+
+            function += c; 
+        }
+
+        if ( c == '(' )
+        {
+            mode = EXTRACT; 
+        }
+
+        curr ++; 
+    }
+
+    std::reverse( std::begin( function ), std::end( function ) ); 
+
+    return function; 
+}
+
+
+bool isCallReference(
+    std::string & line, 
+    std::string & pattern
+    )
+{
+    // Line must start with an indent.
+    if ( ! ( line.substr( 0, 4 ).compare( "    " ) == 0 || line.substr( 0, 1 ).compare( "\t" ) == 0 ) )
+    {
+        return false; 
+    }
+
+    // Must contain character '('.
+    if ( line.find( "(" ) == std::string::npos )
+    {
+        return false; 
+    }
+
+    // Pattern must not be a substring of another function.
+    auto loc = line.find( pattern ); 
+    if ( ( loc + pattern.length() ) < line.length() )
+    {
+        auto c = line[ loc + pattern.length() ]; 
+
+        if ( std::isalnum( c ) || c == '_' )
+        {
+            // Skip if next har is alpha numeric or '_'.
+
+            return false; 
+        }
+    }
+
+    return true; 
+}
+
 
 int main()
 {
-    std::string path( "../linux-4.8.15" );
-    std::string pattern( "cleancache_register_ops" );
+    std::string path( "" );
+    // std::string pattern( "cleancache_register_ops" );
+    std::string pattern( "isolate_movable_page" );
     std::vector< std::string > filters = { "cc" };
     cGrepResultContainer    results; 
     cGrep grep( path, pattern, filters, &results );
 
     grep.start(); 
 
-    volatile int dummy = 0; 
+    sGrepFileSummary s; 
+    while ( results.pop( s ) )
+    {
+        auto index = s.name.find_last_of( "." ); 
+        auto extension = s.name.substr( index + 1 ); 
+
+        // Ignore header files.
+        if ( extension == "h" ) 
+            continue; 
+
+        // std::cout << s.name << std::endl; 
+
+        for ( auto & m : s.result ) 
+        {
+            // Attempt to find function calls here. 
+
+            if ( isCallReference( m.content, pattern ) )
+            {
+                std::cout << s.name << std::endl; 
+                std::cout << m.content << std::endl; 
+
+                auto func = findContainingFunction( s.name, m.line );
+
+                std::cout << func << std::endl;
+            }
+        }
+    }
 }
