@@ -103,8 +103,8 @@ std::string findContainingFunction(
 
 
 bool isCallReference(
-    std::string & line, 
-    std::string & pattern
+    const std::string & line, 
+    const std::string & pattern
     )
 {
     // Line must start with an indent.
@@ -137,16 +137,19 @@ bool isCallReference(
 }
 
 
-int main()
+std::vector< std::string > findCallers(
+    const std::string & pattern
+    )
 {
     std::string path( "" );
     // std::string pattern( "cleancache_register_ops" );
-    std::string pattern( "isolate_movable_page" );
     std::vector< std::string > filters = { "cc" };
     cGrepResultContainer    results; 
-    cGrep grep( path, pattern, filters, &results );
+    cGrep grep( path, const_cast< std::string & >( pattern ), filters, &results );
 
     grep.start(); 
+
+    std::vector< std::string > to_return; 
 
     sGrepFileSummary s; 
     while ( results.pop( s ) )
@@ -166,13 +169,34 @@ int main()
 
             if ( isCallReference( m.content, pattern ) )
             {
+#if 0
                 std::cout << s.name << std::endl; 
                 std::cout << m.content << std::endl; 
+#endif
 
                 auto func = findContainingFunction( s.name, m.line );
 
-                std::cout << func << std::endl;
+                to_return.push_back( func ); 
             }
         }
+    }
+
+    return to_return;
+}
+
+
+int main(
+    int argc, 
+    char **argv
+    )
+{
+    std::string pattern; 
+    pattern = argv[ 1 ]; 
+
+    auto callers = findCallers( pattern );
+
+    for ( auto & c : callers )
+    {
+        std::cout << c << std::endl;
     }
 }
