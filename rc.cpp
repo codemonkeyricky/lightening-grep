@@ -81,7 +81,7 @@ std::string findContainingFunction(
 
         if ( mode == EXTRACT ) 
         {
-            if ( c == ' ' || c == '\n' )
+            if ( c == ' ' || c == '\n' || c == '*' )
             {
                 break; 
             }
@@ -125,11 +125,19 @@ bool isCallReference(
     if ( ( loc + pattern.length() ) < line.length() )
     {
         auto c = line[ loc + pattern.length() ]; 
-
         if ( std::isalnum( c ) || c == '_' )
         {
             // Skip if next har is alpha numeric or '_'.
 
+            return false; 
+        }
+    }
+
+    if ( loc > 0 )
+    {
+        auto c = line[ loc - 1 ];
+        if ( std::isalnum( c ) || c == '_' )
+        {
             return false; 
         }
     }
@@ -195,10 +203,8 @@ int main(
     std::string pattern; 
     pattern = argv[ 1 ]; 
 
-
-    auto callers = findCallers( pattern );
-
-    callerStack.push( callers ); 
+    std::vector< std::string >  initial = { pattern }; 
+    callerStack.push( initial ); 
 
     while ( callerStack.size() > 0 )
     {
@@ -212,16 +218,9 @@ int main(
             continue;
         }
 
-        // Get first entry in list & don't forget to remove.
+        // Pop the first entry in list.
         auto to_grep = callers[ 0 ]; 
         callers.erase( callers.begin() ); 
-        
-        // Find all references & push if not empty.
-        auto r = findCallers( to_grep ); 
-        if ( r.size() > 0 )
-        {
-            callerStack.push( r ); 
-        }
 
         // Print caller.
         auto indents = callerStack.size(); 
@@ -229,8 +228,14 @@ int main(
         {
             std::cout << "    ";
         }
-
         std::cout << to_grep << std::endl;
+        
+        // Find all references & push if not empty.
+        auto r = findCallers( to_grep ); 
+        if ( r.size() > 0 )
+        {
+            callerStack.push( r ); 
+        }
     }
 }
 
