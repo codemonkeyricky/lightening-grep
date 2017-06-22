@@ -124,7 +124,7 @@ vector< sGrepMatchInstance > cGrepEngineNative<T>::process(
 {
     int fd          = open( filename.c_str(), O_RDONLY );
     int size        = lseek( fd, 0, SEEK_END );
-    string s        = m_pattern;
+    // string s        = m_pattern;
     int patternSize = m_pattern.size();
 
     // Limit for now.
@@ -133,7 +133,7 @@ vector< sGrepMatchInstance > cGrepEngineNative<T>::process(
     vector< sGrepMatchInstance > summary;
     int ln = 0;
 
-    alignas( ALIGNMENT ) char mm[ MMAP_SIZE ];
+    alignas( ALIGNMENT ) char mm[ MMAP_SIZE + simd_traits< T >::size ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
         auto ms = std::min( MMAP_SIZE + simd_traits< T >::size, ( long unsigned ) ( size - offset ) );
