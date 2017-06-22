@@ -41,7 +41,19 @@ private:
 }; 
 
 
-std::string findContainingFunction( 
+struct sFunctionReference
+{
+    sFunctionReference( std::string & filename, std::string & funcname, uint32_t line ) 
+        : filename( filename ), funcname( funcname ), line( line )
+    { }
+
+    std::string filename;
+    std::string funcname;
+    uint32_t    line; 
+};
+
+
+sFunctionReference findContainingFunction( 
     std::string    &filename, 
     uint32_t        lineNum
     )
@@ -72,6 +84,7 @@ std::string findContainingFunction(
     curr = 0;
     int mode = NONE;
     std::string function; 
+    uint32_t    lineToReturn = lineNum;
     while ( curr < bm )
     {
         f.seekp( bm - curr ); 
@@ -94,16 +107,21 @@ std::string findContainingFunction(
             mode = EXTRACT; 
         }
 
+        if ( c == '\n' )
+        {
+            lineToReturn --; 
+        }
+
         curr ++; 
     }
 
     std::reverse( std::begin( function ), std::end( function ) ); 
 
-    return function; 
+    return sFunctionReference( filename, function, lineToReturn ); 
 }
 
 
-bool isCallReference(
+bool isLineCallReference(
     const std::string & line, 
     const std::string & pattern
     )
@@ -114,24 +132,28 @@ bool isCallReference(
         return false; 
     }
 
-    // Must contain character '('.
-    if ( line.find( "(" ) == std::string::npos )
-    {
-        return false; 
-    }
 
-    // Pattern must not be a substring of another function.
+    // To qualify as a call ref pattern must be followed by '('.
+
     auto loc = line.find( pattern ); 
     if ( ( loc + pattern.length() ) < line.length() )
     {
         auto c = line[ loc + pattern.length() ]; 
+#if 0
         if ( std::isalnum( c ) || c == '_' )
         {
             // Skip if next har is alpha numeric or '_'.
 
             return false; 
         }
+#endif
+        if ( c != '(' )
+        {
+            return false;
+        } 
     }
+
+    // Pattern must not be a substring of another function.
 
     if ( loc > 0 )
     {
@@ -140,13 +162,26 @@ bool isCallReference(
         {
             return false; 
         }
+    } 
+
+    // If line starts with '* ' then is a comment. 
+
+    loc = 0;
+    while ( loc < line.length() 
+    && ( line[ loc ] == ' ' || line[ loc ] == '\t' ) )
+    {
+        loc ++; 
+    }
+    if ( line[ loc ] == '*' && line[ loc + 1 ] == ' ' )
+    {
+        return false; 
     }
 
     return true; 
 }
 
 
-std::vector< std::string > findCallers(
+std::vector< sFunctionReference > findCallers(
     const std::string & pattern
     )
 {
@@ -158,7 +193,7 @@ std::vector< std::string > findCallers(
 
     grep.start(); 
 
-    std::vector< std::string > to_return; 
+    std::vector< sFunctionReference > to_return; 
 
     sGrepFileSummary s; 
     while ( results.pop( s ) )
@@ -176,16 +211,14 @@ std::vector< std::string > findCallers(
         {
             // Attempt to find function calls here. 
 
-            if ( isCallReference( m.content, pattern ) )
+            if ( isLineCallReference( m.content, pattern ) )
             {
 #if 0
                 std::cout << s.name << std::endl; 
                 std::cout << m.content << std::endl; 
 #endif
 
-                auto func = findContainingFunction( s.name, m.line );
-
-                to_return.push_back( func ); 
+                to_return.push_back( findContainingFunction( s.name, m.line ) ); 
             }
         }
     }
@@ -199,11 +232,12 @@ int main(
     char **argv
     )
 {
-    std::stack< std::vector< std::string > > callerStack; 
+    std::stack< std::vector< sFunctionReference > > callerStack; 
     std::string pattern; 
     pattern = argv[ 1 ]; 
 
-    std::vector< std::string >  initial = { pattern }; 
+    std::string name( "null" ); 
+    std::vector< sFunctionReference >  initial = { { name, pattern, 0 } }; 
     callerStack.push( initial ); 
 
     while ( callerStack.size() > 0 )
@@ -228,10 +262,10 @@ int main(
         {
             std::cout << "    ";
         }
-        std::cout << to_grep << std::endl;
+        std::cout << to_grep.funcname << " ( " << to_grep.filename << ":ln" << to_grep.line << " )" << std::endl;
         
         // Find all references & push if not empty.
-        auto r = findCallers( to_grep ); 
+        auto r = findCallers( to_grep.funcname ); 
         if ( r.size() > 0 )
         {
             callerStack.push( r ); 
