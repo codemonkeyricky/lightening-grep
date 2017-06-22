@@ -13,9 +13,7 @@
 using namespace std;
 
 template< class T >
-cGrepEngineNative<T>::cGrepEngineNative(
-    string &pattern
-    ) : m_pattern( pattern )
+cGrepEngineNative<T>::cGrepEngineNative() 
 {
     populatePatternVariables();
 }
@@ -26,6 +24,18 @@ cGrepEngineNative<T>::~cGrepEngineNative()
 {
 
 }
+
+
+template< class T >
+void cGrepEngineNative<T>::reset( 
+    string & pattern 
+    )
+{
+    m_pattern = pattern; 
+
+    populatePatternVariables();
+}
+
 
 
 template< class T >

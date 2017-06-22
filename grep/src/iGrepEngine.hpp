@@ -8,8 +8,6 @@
 class iGrepEngine
 {
 public:
-
-    int MMAP_SIZE   = 4096 * 4;
-
+    virtual void reset( std::string & pattern ) = 0;
     virtual std::vector< sGrepMatchInstance > process( std::string & filename ) = 0;
 };

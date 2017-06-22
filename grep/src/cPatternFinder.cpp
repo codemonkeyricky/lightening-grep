@@ -6,6 +6,9 @@
 
 using namespace std; 
 
+cGrepEngineNative< AVX >  savx; 
+cGrepEngineNative< AVX2 >  savx2;
+
 void cPatternFinder::findPattern(
     int                     workerId,
     int                     cap,
@@ -15,12 +18,12 @@ void cPatternFinder::findPattern(
     )
 {
     iGrepEngine  *searcher;
-    cGrepEngineNative< AVX >  savx( pattern );
-    cGrepEngineNative< AVX2 >  savx2( pattern );
 
     searcher = ( cap & static_cast< int >( Capability::AVX2 ) ) ?
         static_cast< iGrepEngine * >( &savx2 ) :
         static_cast< iGrepEngine * >( &savx );
+
+    searcher->reset( pattern );
 
     // auto start = std::chrono::high_resolution_clock::now();
 

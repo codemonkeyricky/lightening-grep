@@ -40,10 +40,9 @@ template< class T >
 class cGrepEngineNative : public iGrepEngine
 {
 public:
-
     typedef typename simd_traits< T >::type vec_type;
 
-    cGrepEngineNative( std::string & pattern );
+    cGrepEngineNative();
     ~cGrepEngineNative();
 
     inline vec_type vector_load( const vec_type * ) { vec_type temp; return temp; }
@@ -51,11 +50,13 @@ public:
     inline unsigned int vector_to_bitmask( vec_type & ) { return 0; }
     inline unsigned int int_bits_count( unsigned int & ) { return 0; } 
 
+    virtual void reset( std::string & pattern );
     virtual std::vector< sGrepMatchInstance > process( std::string & filename );
 
     static const int REGISTERS_REQUIRED = PATTERN_SIZE_MAX / simd_traits< T >::size;
 
 private:
+    int MMAP_SIZE   = 4096 * 4;
 
     void populatePatternVariables();
     void insertRecord( const char *, int, const char *, const char *, int, std::vector< sGrepMatchInstance > & );
