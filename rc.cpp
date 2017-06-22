@@ -132,7 +132,6 @@ bool isLineCallReference(
         return false; 
     }
 
-
     // To qualify as a call ref pattern must be followed by '('.
 
     auto loc = line.find( pattern ); 
@@ -172,7 +171,8 @@ bool isLineCallReference(
     {
         loc ++; 
     }
-    if ( line[ loc ] == '*' && line[ loc + 1 ] == ' ' )
+    if ( line[ loc ] == '*' 
+    && ( line[ loc + 1 ] == ' ' || line[ loc + 1 ] == '\t' ) )
     {
         return false; 
     }
