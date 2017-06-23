@@ -163,16 +163,25 @@ bool isLineCallReference(
         }
     } 
 
+    // Pattern is part of comment.
+
+    std::string comment( "//" );
+    auto commentStartLoc = line.find( comment ); 
+    if ( commentStartLoc < loc )
+    {
+        return false;
+    }
+
     // If line starts with '* ' then is a comment. 
 
     loc = 0;
     while ( loc < line.length() 
-    && ( line[ loc ] == ' ' || line[ loc ] == '\t' ) )
+            && ( line[ loc ] == ' ' || line[ loc ] == '\t' ) )
     {
         loc ++; 
     }
     if ( line[ loc ] == '*' 
-    && ( line[ loc + 1 ] == ' ' || line[ loc + 1 ] == '\t' ) )
+            && ( line[ loc + 1 ] == ' ' || line[ loc + 1 ] == '\t' ) )
     {
         return false; 
     }
