@@ -6,8 +6,20 @@
 
 using namespace std; 
 
-cGrepEngineNative< AVX >  savx; 
-cGrepEngineNative< AVX2 >  savx2;
+struct sProcessEngine
+{
+    cGrepEngineNative< AVX >  savx; 
+    cGrepEngineNative< AVX2 >  savx2;
+}; 
+
+static std::vector< sProcessEngine >    f_processEngines;
+
+void cPatternFinder::reset(
+    int workers
+    )
+{
+    f_processEngines.resize( workers ); 
+}
 
 void cPatternFinder::findPattern(
     int                     workerId,
@@ -20,8 +32,8 @@ void cPatternFinder::findPattern(
     iGrepEngine  *searcher;
 
     searcher = ( cap & static_cast< int >( Capability::AVX2 ) ) ?
-        static_cast< iGrepEngine * >( &savx2 ) :
-        static_cast< iGrepEngine * >( &savx );
+        static_cast< iGrepEngine * >( &f_processEngines[ workerId ].savx2 ) :
+        static_cast< iGrepEngine * >( &f_processEngines[ workerId ].savx );
 
     searcher->reset( pattern );
 

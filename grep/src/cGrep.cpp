@@ -85,6 +85,7 @@ void cGrep::startConsumer(
 
     if ( pool.size() > 0 )
     {
+        cPatternFinder::reset( m_workerThreads ); 
         for ( auto i = 0; i < m_workerThreads; i ++ )
         {
             pool.emplace_back( cPatternFinder::findPattern, i, cap, &list, m_pattern, m_summary );

@@ -15,7 +15,6 @@ using namespace std;
 template< class T >
 cGrepEngineNative<T>::cGrepEngineNative() 
 {
-    populatePatternVariables();
 }
 
 

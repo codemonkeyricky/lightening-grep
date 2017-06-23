@@ -13,5 +13,6 @@ public:
         AVX2    = 0x02
     };
 
+    static void reset( int );
     static void findPattern( int, int, iQueue< sGrepEntry > *, std::string, iGrepSearchSummary * );
 }; 
