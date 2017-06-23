@@ -21,7 +21,10 @@ rc : rc.cpp
 	$(CXX) $(CFLAGS) rc_g.o -o rc_debug $(LDFLAGS_D) # debug
 	$(CXX) $(CFLAGS) -O3 -g -c -o rc.o $<
 	$(CXX) $(CFLAGS) rc.o -o rc $(LDFLAGS) # debug
-	cp rc /usr/local/bin
+	# cp rc /usr/local/bin
 
 install : 
-	cp gg /usr/local/bin
+	# cp gg /usr/local/bin
+
+clean: 
+	git clean -fdx

@@ -28,7 +28,8 @@ cGrep::cGrep(
 : m_filePath( filePath ),
   m_pattern( pattern ),
   m_filters( filters ),
-  m_summary( ss )
+  m_summary( ss ), 
+  m_workerThreads( std::thread::hardware_concurrency() )
 {
     avx_support     = __builtin_cpu_supports( "avx" );
     avx2_support    = __builtin_cpu_supports( "avx2" );

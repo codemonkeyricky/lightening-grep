@@ -27,7 +27,7 @@ private:
     void startProducer( std::vector< std::thread > &, iQueue< sGrepEntry > & );
     void startConsumer( std::vector< std::thread > &, iQueue< sGrepEntry > & );
 
-    int                         m_workerThreads = 4;
+    int                         m_workerThreads;
     std::string                 m_filePath;
     std::string                 m_pattern;
     std::vector< std::string >  m_filters;
