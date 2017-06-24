@@ -184,6 +184,11 @@ void cFileFinder::exploreDirectory(
                     if ( scanAllfiles )
                     {
                         allow = !isBinary( to_add );
+                        if ( allow )
+                        {
+                            // Skip ctags file.
+                            allow = strcmp( name, "tags" ) != 0; 
+                        }
                     }
                 }
 

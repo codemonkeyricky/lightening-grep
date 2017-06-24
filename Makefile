@@ -24,7 +24,8 @@ rc : rc.cpp
 	# cp rc /usr/local/bin
 
 install : 
-	# cp gg /usr/local/bin
+	cp gg /usr/local/bin
+	cp rc /usr/local/bin
 
 clean: 
 	git clean -fdx
