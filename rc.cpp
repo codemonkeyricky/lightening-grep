@@ -4,6 +4,7 @@
 #include <fstream>
 #include <algorithm>
 #include <stack>
+#include <cstring>
 
 #include "cGrep.hpp"
 
@@ -236,6 +237,57 @@ std::vector< sFunctionReference > findCallers(
 }
 
 
+struct sProgramOptions
+{
+    sProgramOptions() = default; 
+
+    sProgramOptions( std::string & pattern, uint32_t depth )
+        : pattern( pattern ), depth( depth )
+    {
+    }
+
+    std::string pattern; 
+    uint32_t    depth = 0; 
+};
+
+
+bool interpretOptions(
+    int                 argc, 
+    char              **argv, 
+    sProgramOptions    &options
+    )
+{
+    std::string      pattern;
+    uint32_t    depth = 0; 
+
+    int         index = 1;
+    while ( index < argc )
+    {
+        // Parse options.
+        if ( strncmp( argv[ index ], "-", 1 ) == 0 )
+        {
+            // Filter options.
+            if ( argv[ index ][ 1 ] == 'd' ) 
+            {
+                depth = argv[ index ][ 2 ] - '0'; 
+            }
+        }
+        else
+        if ( pattern == "" )
+        {
+            pattern = argv[ index ];
+        }
+
+        index ++;
+    }
+
+    sProgramOptions  opt( pattern, depth ); 
+    options = std::move( opt ); 
+
+    return ( pattern == "" ) ? false : true; 
+}
+
+
 int main(
     int argc, 
     char **argv
@@ -243,7 +295,16 @@ int main(
 {
     std::stack< std::vector< sFunctionReference > > callerStack; 
     std::string pattern; 
-    pattern = argv[ 1 ]; 
+    uint32_t    depth; 
+
+    sProgramOptions opts; 
+    if ( !interpretOptions ( argc, argv, opts ) )
+    {
+        return -1;  
+    }
+
+    pattern = opts.pattern; 
+    depth = opts.depth; 
 
     std::string name( "null" ); 
     std::vector< sFunctionReference >  initial = { { name, pattern, 0 } }; 
@@ -272,12 +333,15 @@ int main(
             std::cout << "    ";
         }
         std::cout << to_grep.funcname << " ( " << to_grep.filename << ":ln" << to_grep.line << " )" << std::endl;
-        
-        // Find all references & push if not empty.
-        auto r = findCallers( to_grep.funcname ); 
-        if ( r.size() > 0 )
+
+        if ( depth == 0 || indents < ( depth + 1 ) )
         {
-            callerStack.push( r ); 
+            // Find all references & push if not empty.
+            auto r = findCallers( to_grep.funcname ); 
+            if ( r.size() > 0 )
+            {
+                callerStack.push( r ); 
+            }
         }
     }
 }
