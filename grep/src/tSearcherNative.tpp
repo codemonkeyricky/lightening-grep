@@ -133,7 +133,6 @@ vector< sGrepMatchInstance > cGrepEngineNative<T>::process(
 {
     int fd          = open( filename.c_str(), O_RDONLY );
     int size        = lseek( fd, 0, SEEK_END );
-    // string s        = m_pattern;
     int patternSize = m_pattern.size();
 
     // Limit for now.
@@ -206,7 +205,7 @@ vector< sGrepMatchInstance > cGrepEngineNative<T>::process(
                     // If all bytes match, then we found the string.
                     if ( bytesCompared == patternSize )
                     {
-                        insertRecord( mm, MMAP_SIZE, mm + i, m_pattern.c_str(), ln, summary );
+                        insertRecord( mm, MMAP_SIZE + simd_traits< T >::size, mm + i, m_pattern.c_str(), ln, summary );
 
                         break;
                     }
