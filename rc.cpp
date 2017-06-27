@@ -173,6 +173,14 @@ bool isLineCallReference(
         return false;
     }
 
+    std::string quote( "\"" );
+    auto quoteStart = line.find( quote ); 
+    auto quoteEnd = line.find( quote, quoteStart + 1 ); 
+    if ( quoteStart < loc && loc < quoteEnd )
+    {
+        return false;
+    }
+
     // If line starts with '* ' then is a comment. 
 
     loc = 0;
