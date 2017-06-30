@@ -23,6 +23,9 @@ rc : rc.cpp
 	$(CXX) $(CFLAGS) rc.o -o rc $(LDFLAGS) # debug
 	# cp rc /usr/local/bin
 
+ff : ff.cpp
+	$(CXX) $(CFLAGS) -O0 -g -o ff $< -lboost_filesystem -lboost_system
+
 install : 
 	cp gg /usr/local/bin
 	cp rc /usr/local/bin
