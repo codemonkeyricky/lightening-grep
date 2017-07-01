@@ -2,9 +2,8 @@
 #include <algorithm> 
 #include <vector>
 #include <queue>
-
-#include <boost/filesystem.hpp>
-
+#include <fstream>
+#include <iostream>
 
 int LevenshteinDistance(
     std::string A, 
@@ -41,6 +40,7 @@ int LevenshteinDistance(
 }
 
 
+#if 0
 void dump(
     boost::filesystem::path path
     )
@@ -64,6 +64,18 @@ void dump(
     }
 #endif
 }
+#endif
+
+
+struct FileEntry
+{
+    FileEntry( std::string f, std::string p ) 
+        : f( f ), p( p )
+    { }
+
+    std::string f;  ///< filename 
+    std::string p;  ///< fullpath
+};
 
 
 struct Element
@@ -97,42 +109,39 @@ int main(
 {
     std::string pattern = argv[ 1 ]; 
 
-    std::string path( "." );
+    std::vector< FileEntry > list;
+    std::fstream f( "filelist" );
+    std::string fullpath;
+    while ( true )
+    {
+        std::getline( f, fullpath ); 
+        if ( !f )
+            break; 
+
+        auto lastIndex  = fullpath.find_last_of( "/" );
+        auto filename   = fullpath.substr( lastIndex + 1 );
+
+        list.emplace_back( filename, fullpath ); 
+    }
 
     std::priority_queue< Element, std::vector< Element >, Compare > heap; 
-
-    auto it = boost::filesystem::recursive_directory_iterator( path ); 
-    boost::filesystem::recursive_directory_iterator end; 
-    for ( ; it != end; it ++ ) 
+    for ( auto &p : list ) 
     {
-        boost::filesystem::path p = *it; 
-
-        auto d = LevenshteinDistance( pattern, p.filename().string() ); 
-
-        if ( d == 0 )
-        {
-            volatile int d = 0;
-        }
+        auto d = LevenshteinDistance( pattern, p.f );
 
         if ( heap.size() < 10 )
         {
-            heap.emplace( d, p.filename().string(), p.relative_path().string() ); 
+            heap.emplace( d, p.f, p.p );
         }
         else if ( d < heap.top().d )
         {
             heap.pop(); 
-            heap.emplace( d, p.filename().string(), p.relative_path().string() ); 
+            heap.emplace( d, p.f, p.p ); 
         }
     }
 
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    while ( heap.size() > 0 )
+    {
+        std::cout << heap.top().d << " : " << heap.top().p << std::endl; heap.pop();
+    }
 }
