@@ -85,7 +85,7 @@ struct Compare
         const Element   &e2
         )
     {
-        return e1.d > e2.d; 
+        return e1.d < e2.d; 
     }
 };
 
@@ -109,8 +109,30 @@ int main(
 
         auto d = LevenshteinDistance( pattern, p.filename().string() ); 
 
-        heap.emplace( d, p.filename().string(), p.relative_path().string() ); 
+        if ( d == 0 )
+        {
+            volatile int d = 0;
+        }
+
+        if ( heap.size() < 10 )
+        {
+            heap.emplace( d, p.filename().string(), p.relative_path().string() ); 
+        }
+        else if ( d < heap.top().d )
+        {
+            heap.pop(); 
+            heap.emplace( d, p.filename().string(), p.relative_path().string() ); 
+        }
     }
 
-    std::cout << heap.top().d << " : " << heap.top().f << std::endl; 
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
+    std::cout << heap.top().d << " : " << heap.top().f << std::endl; heap.pop();
 }
