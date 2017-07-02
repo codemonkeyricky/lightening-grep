@@ -5,6 +5,44 @@
 #include <fstream>
 #include <iostream>
 #include <cstring>
+#include <chrono>
+
+
+int LevenshteinDistanceScalar(
+    std::string A,
+    std::string B
+    )
+{
+    std::vector< std::vector< int > > mat( A.size() + 1, std::vector< int >( B.size() + 1 ) ); 
+
+    for ( auto j = 0; j <= B.size(); j++ ) 
+        mat[ 0 ][ j ] = j; 
+
+    for ( auto j = 0; j <= A.size(); j++ ) 
+        mat[ j ][ 0 ] = j; 
+
+    for ( auto i = 1; i <= A.size(); i++ )
+    {
+        for ( auto j = 1; j <= B.size(); j++ )
+        {
+            if ( A[ i - 1 ] == B[ j - 1 ] ) 
+            {
+                mat[ i ][ j ] = mat[ i - 1 ][ j - 1 ];
+            }
+            else
+            {
+                mat[ i ][ j ] = std::min( std::min( mat[ i - 1 ][ j - 1 ], mat[ i ][ j - 1 ] ), 
+                        mat[ i - 1 ][ j ] ); 
+
+                mat[ i ][ j ] += 1; 
+            }
+        }
+    }
+
+    return mat[ A.size() ][ B.size() ]; 
+}
+
+
 
 int LevenshteinDistance(
     std::string target, 
@@ -142,7 +180,21 @@ int main(
 #endif 
         std::string t( "bread" ); 
         std::string p( "fred" ); 
-        auto d = LevenshteinDistance( t, p );
+
+        auto t1 = std::chrono::high_resolution_clock::now(); 
+
+        for ( auto i = 0; i < 10000; i ++ )
+            volatile int d1 = LevenshteinDistance( t, p );
+
+        auto t2 = std::chrono::high_resolution_clock::now(); 
+
+        for ( auto i = 0; i < 10000; i ++ )
+            volatile int d2 = LevenshteinDistanceScalar( t, p ); 
+
+        auto t3 = std::chrono::high_resolution_clock::now(); 
+
+        std::cout << "SIMD:     " << std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count() << " us" << std::endl; 
+        std::cout << "SCALAR:   " << std::chrono::duration_cast<std::chrono::microseconds>( t3 - t2 ).count() << " us" << std::endl; 
 
 #if 0
         if ( heap.size() < 10 )
