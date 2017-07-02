@@ -105,7 +105,7 @@ int LevenshteinDistance(
         _mm_store_si128( ( __m128i * ) &t[ 0 ], sum ); 
 
         t[ 0 ] = i + 1; 
-        for ( auto j = 1; j < targetLen; j ++ )
+        for ( auto j = 1; j < ( targetLen + 1 ); j ++ )
         {
             t[ j ] = std::min( (uint8_t) ( t[ j - 1 ] + 1 ), t[ j ] ); 
         }
@@ -115,6 +115,8 @@ int LevenshteinDistance(
 
     return t[ targetLen ]; 
 }
+
+
 
 struct FileEntry
 {
@@ -178,18 +180,24 @@ int main(
     for ( auto &p : list ) 
     {
 #endif 
-        std::string t( "bread" ); 
-        std::string p( "fred" ); 
+        std::string t( "source.c" ); 
+        std::string p( "sourc" ); 
 
         auto t1 = std::chrono::high_resolution_clock::now(); 
 
         for ( auto i = 0; i < 10000; i ++ )
+        {
             volatile int d1 = LevenshteinDistance( t, p );
+            volatile int d0 = 0;
+        }
 
         auto t2 = std::chrono::high_resolution_clock::now(); 
 
         for ( auto i = 0; i < 10000; i ++ )
+        {
             volatile int d2 = LevenshteinDistanceScalar( t, p ); 
+            volatile int d0 = 0;
+        }
 
         auto t3 = std::chrono::high_resolution_clock::now(); 
 
@@ -212,5 +220,5 @@ int main(
     {
         std::cout << heap.top().d << " : " << heap.top().p << std::endl; heap.pop();
     }
-    #endif
+#endif
 }
