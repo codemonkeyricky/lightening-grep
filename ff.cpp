@@ -4,68 +4,79 @@
 #include <queue>
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 int LevenshteinDistance(
-    std::string A, 
-    std::string B
+    std::string target, 
+    std::string candidate
     )
 {
-    std::vector< std::vector< int > > mat( A.size() + 1, std::vector< int >( B.size() + 1 ) ); 
+    std::vector< uint8_t > initial = 
+    { 
+        0, 1, 2, 3, 4, 5, 6, 7,
+        8, 9, 10, 11, 12, 13, 14, 15
+    }; 
 
-    for ( auto j = 0; j <= B.size(); j++ ) 
-        mat[ 0 ][ j ] = j; 
+    std::vector< uint8_t > t; 
+    t.resize( 16 ); 
 
-    for ( auto j = 0; j <= A.size(); j++ ) 
-        mat[ j ][ 0 ] = j; 
-
-    for ( auto i = 1; i <= A.size(); i++ )
+    auto targetLen = target.length();
+    auto candidateLen = candidate.length();
+    target.resize( 16 ); 
+    __m128i c   = _mm_load_si128( ( const __m128i * ) &initial[ 0 ] );
+    __m128i ones= _mm_set1_epi8( 1 ); 
+    __m128i s   = _mm_load_si128( ( const __m128i * ) &target[ 0 ] ); 
+    __m128i e, a; 
+    for ( auto i = 0; i < candidateLen; i ++ )
     {
-        for ( auto j = 1; j <= B.size(); j++ )
+        // edit remains.
+        e       = c; 
+
+        // shift add to align with edit. 
+        a       = _mm_srli_si128( c, 1 );
+
+        // Only need to substitute if character is different.
+        auto r  = _mm_set1_epi8( candidate[ i ] );
+
+        // m = compare entire word with current letter
+        // e = m * e + !m * ( min( a, e ) + 1 ); 
+
+        // 
+        // Find the chars that just carries over -> p1
+        // 
+
+        auto m  = _mm_cmpeq_epi8( s, r );
+        auto p1 = _mm_and_si128( m, e ); 
+
+        // 
+        // Find the minimum between edits and adds, then +1 -> p2 
+        // 
+
+        auto min    = _mm_min_epi8( a, e ); 
+        min         = _mm_add_epi8( min, ones );
+        auto nm     = ~m; 
+        auto p2     = _mm_and_si128( nm, min ); 
+
+        auto sum    = _mm_add_epi8( p1, p2 ); 
+        sum         = _mm_slli_si128( sum, 1 );
+
+        // 
+        // Now account for deletes -> c 
+        // 
+
+        _mm_store_si128( ( __m128i * ) &t[ 0 ], sum ); 
+
+        t[ 0 ] = i + 1; 
+        for ( auto j = 1; j < targetLen; j ++ )
         {
-            if ( A[ i - 1 ] == B[ j - 1 ] ) 
-            {
-                mat[ i ][ j ] = mat[ i - 1 ][ j - 1 ];
-            }
-            else
-            {
-                mat[ i ][ j ] = std::min( std::min( mat[ i - 1 ][ j - 1 ], mat[ i ][ j - 1 ] ), 
-                                    mat[ i - 1 ][ j ] ); 
-
-                mat[ i ][ j ] += 1; 
-            }
+            t[ j ] = std::min( (uint8_t) ( t[ j - 1 ] + 1 ), t[ j ] ); 
         }
+
+        c  = _mm_load_si128( ( const __m128i * ) &t[ 0 ] );
     }
 
-    return mat[ A.size() ][ B.size() ]; 
+    return t[ targetLen ]; 
 }
-
-
-#if 0
-void dump(
-    boost::filesystem::path path
-    )
-{
-#if 0
-    try
-    {
-        std::cout << (boost::filesystem::is_directory(path) ? 'D' : ' ') << ' ';
-        std::cout << (boost::filesystem::is_symlink(path) ? 'L' : ' ') << ' ';
-        for(int i = 0; i < level; ++i)
-            std::cout << ' ';
-#endif
-        path.relative_path();
-        // std::cout << path.relative_path() << std::endl;
-        // std::cout << path.filename() << std::endl;
-#if 0
-    }
-    catch(boost::filesystem::filesystem_error& fex)
-    {
-        std::cout << fex.what() << std::endl;
-    }
-#endif
-}
-#endif
-
 
 struct FileEntry
 {
@@ -124,11 +135,16 @@ int main(
         list.emplace_back( filename, fullpath ); 
     }
 
+#if 0
     std::priority_queue< Element, std::vector< Element >, Compare > heap; 
     for ( auto &p : list ) 
     {
-        auto d = LevenshteinDistance( pattern, p.f );
+#endif 
+        std::string t( "bread" ); 
+        std::string p( "fred" ); 
+        auto d = LevenshteinDistance( t, p );
 
+#if 0
         if ( heap.size() < 10 )
         {
             heap.emplace( d, p.f, p.p );
@@ -144,4 +160,5 @@ int main(
     {
         std::cout << heap.top().d << " : " << heap.top().p << std::endl; heap.pop();
     }
+    #endif
 }
