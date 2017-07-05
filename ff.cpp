@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cstring>
 #include <chrono>
+#include <cassert>
 
 
 int LevenshteinDistanceScalar(
@@ -49,20 +50,25 @@ int LevenshteinDistance(
     std::string candidate
     )
 {
-#define MAX_CHAR        32
+#define MAX_CHAR        64
 #define CHAR_PER_REG    16
 
-    std::vector< uint8_t > initial = 
+    assert( target.length() <= ( 64 - 1 ) );
+    assert( candidate.length() <= ( 64 - 1 ) );
+
+    uint8_t initial[ 64 + 1 ] = 
     { 
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+        32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 
+        48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
+        0xff 
     }; 
 
-    std::vector< uint8_t > t = initial;
-    t.resize( MAX_CHAR + 1 ); 
-    std::vector< uint8_t > ts; 
-    std::copy( t.begin() + 1, t.end(), std::back_inserter( ts ) ); 
-    ts.resize( MAX_CHAR + 1 ); 
+    uint8_t t[ MAX_CHAR ]; 
+    uint8_t ts[ MAX_CHAR ]; 
+    memcpy( t, initial, MAX_CHAR ); 
+    memcpy( ts, initial + 1, MAX_CHAR ); 
 
     auto targetLen = target.length();
     auto candidateLen = candidate.length();
@@ -70,8 +76,8 @@ int LevenshteinDistance(
     copy.resize( MAX_CHAR + 1 ); 
 
     // Calculate number of xmm registers required.
-    auto regReq = targetLen / CHAR_PER_REG;
-    regReq += targetLen % CHAR_PER_REG ? 1 : 0;
+    auto regReq = ( targetLen + 1 ) / CHAR_PER_REG;
+    regReq += ( targetLen + 1 ) % CHAR_PER_REG ? 1 : 0;
 
     // Initialize current and current shifted.
     __m128i c[ regReq ], cs[ regReq ];
@@ -101,8 +107,17 @@ int LevenshteinDistance(
 
         for ( auto j = 0u; j < regReq; j++ )
         {
-            c[ j ]  = _mm_load_si128( ( const __m128i * ) &t[ j * CHAR_PER_REG ] );
-            cs[ j ] = _mm_load_si128( ( const __m128i * ) &ts[ j * CHAR_PER_REG ] );
+            uint8_t temp[ CHAR_PER_REG ]; 
+
+            // Any multiple of 32 chars needs to be offset. 
+
+            uint8_t o = ( j == 0 ) ? 0 : 1; 
+
+            memcpy( temp, &t[ j * CHAR_PER_REG - o ], CHAR_PER_REG ); 
+            c[ j ]  = _mm_load_si128( ( const __m128i * ) &temp[ 0 ] ); 
+
+            memcpy( temp, &ts[ j * CHAR_PER_REG - o ], CHAR_PER_REG ); 
+            cs[ j ]  = _mm_load_si128( ( const __m128i * ) &temp[ 0 ] ); 
         }
 
         for ( auto j = 0u; j < regReq; j++ )
@@ -136,7 +151,9 @@ int LevenshteinDistance(
             auto p2     = _mm_and_si128( nm, min ); 
 
             auto sum    = _mm_add_epi8( p1, p2 ); 
-            sum         = _mm_slli_si128( sum, 1 );
+
+            if ( j == 0 ) 
+                sum = _mm_slli_si128( sum, 1 );
 
             _mm_store_si128( ( __m128i * ) &t[ j * CHAR_PER_REG ], sum ); 
         }
@@ -151,8 +168,7 @@ int LevenshteinDistance(
             t[ j ] = std::min( (uint8_t) ( t[ j - 1 ] + 1 ), t[ j ] ); 
         }
 
-        ts.clear();
-        std::copy( t.begin() + 1, t.end(), std::back_inserter( ts ) ); 
+        memcpy( ts, t + 1, MAX_CHAR ); 
     }
 
     return t[ targetLen ]; 
@@ -226,12 +242,12 @@ int main(
         std::string t( "source.c" ); 
         std::string p( "sourc" ); 
         #endif
-        std::string t( "bread" ); 
-        std::string p( "fred" ); 
+        std::string t( "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" );
+        std::string p( "yyy" ); 
 
         auto t1 = std::chrono::high_resolution_clock::now(); 
 
-        for ( auto i = 0; i < 1; i ++ )
+        for ( auto i = 0; i < 100000; i ++ )
         {
             volatile int d1 = LevenshteinDistance( t, p );
             volatile int d0 = 0;
@@ -239,7 +255,7 @@ int main(
 
         auto t2 = std::chrono::high_resolution_clock::now(); 
 
-        for ( auto i = 0; i < 1; i ++ )
+        for ( auto i = 0; i < 100000; i ++ )
         {
             volatile int d2 = LevenshteinDistanceScalar( t, p ); 
             volatile int d0 = 0;
