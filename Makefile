@@ -4,7 +4,9 @@ CFLAGS 		:= -Igrep/api -std=gnu++11
 LDFLAGS		:= -Lgrep -lgrep -lpthread 
 LDFLAGS_D   := -Lgrep -lgrep_d -lpthread
 
-all : gg_g.o gg.o
+all : gg rc 
+
+gg : gg_g.o gg.o
 	make -C grep
 	$(CXX) $(CFLAGS) gg.o -o gg $(LDFLAGS)           # release
 	$(CXX) $(CFLAGS) gg_g.o -o gg_debug $(LDFLAGS_D) # debug
