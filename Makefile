@@ -26,7 +26,7 @@ rc : rc.cpp
 	# cp rc /usr/local/bin
 
 ff : ff.cpp
-	$(CXX) $(CFLAGS) -O3 -g -o ff $<
+	$(CXX) $(CFLAGS) -O3 -o ff $<  -march=native -Wall
 
 install : 
 	cp gg /usr/local/bin
