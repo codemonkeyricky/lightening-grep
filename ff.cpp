@@ -53,6 +53,11 @@ int LevenshteinDistance(
 #define MAX_CHAR        64
 #define CHAR_PER_REG    16
 
+    if ( candidate.length() >= MAX_CHAR )
+    {
+        std::cout << candidate << std::endl; 
+    }
+
     assert( target.length() <= ( 64 - 1 ) );
     assert( candidate.length() <= ( 64 - 1 ) );
 
@@ -70,10 +75,10 @@ int LevenshteinDistance(
     memcpy( t, initial, MAX_CHAR ); 
     memcpy( ts, initial + 1, MAX_CHAR ); 
 
-    auto targetLen = target.length();
-    auto candidateLen = candidate.length();
-    auto copy = target; 
-    copy.resize( MAX_CHAR + 1 ); 
+    auto targetLen      = target.length();
+    auto candidateLen   = candidate.length();
+    uint8_t copy[ MAX_CHAR ] = { 0 };
+    memcpy( &copy[ 0 ], &target[ 0 ], target.length() );
 
     // Calculate number of xmm registers required.
     auto regReq = ( targetLen + 1 ) / CHAR_PER_REG;
