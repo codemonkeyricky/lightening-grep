@@ -110,7 +110,6 @@ void cFileFinder::exploreDirectory(
         while ( ( entry = readdir( dirp ) ) != nullptr )
         {
             auto name = entry->d_name;
-            auto name_len = entry->d_reclen;
 
             if ( entry->d_type == DT_DIR )
             {

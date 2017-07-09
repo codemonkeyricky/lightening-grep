@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include "cGrepEngineNative.hpp"
 
 using namespace std;
@@ -144,7 +145,7 @@ vector< sGrepMatchInstance > cGrepEngineNative<T>::process(
     alignas( ALIGNMENT ) char mm[ MMAP_SIZE + simd_traits< T >::size ];
     for ( auto offset = 0; offset < size; offset += MMAP_SIZE )
     {
-        auto ms = std::min( MMAP_SIZE + simd_traits< T >::size, ( long unsigned ) ( size - offset ) );
+        auto ms = std::min( ( long unsigned ) ( MMAP_SIZE + simd_traits< T >::size ), ( long unsigned ) ( size - offset ) );
 
         lseek( fd, offset, SEEK_SET );
         auto rd = read( fd, mm, ms );
