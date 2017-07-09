@@ -233,40 +233,11 @@ int main(
         list.emplace_back( filename, fullpath ); 
     }
 
-#if 0
     std::priority_queue< Element, std::vector< Element >, Compare > heap; 
     for ( auto &p : list ) 
     {
-#endif 
-#if 0
-        std::string t( "source.c" ); 
-        std::string p( "sourc" ); 
-        #endif
-        std::string t( "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" );
-        std::string p( "yyy" ); 
+        auto d = LevenshteinDistance( pattern, p.f );
 
-        auto t1 = std::chrono::high_resolution_clock::now(); 
-
-        for ( auto i = 0; i < 100000; i ++ )
-        {
-            volatile int d1 = LevenshteinDistance( t, p );
-            volatile int d0 = 0;
-        }
-
-        auto t2 = std::chrono::high_resolution_clock::now(); 
-
-        for ( auto i = 0; i < 100000; i ++ )
-        {
-            volatile int d2 = LevenshteinDistanceScalar( t, p ); 
-            volatile int d0 = 0;
-        }
-
-        auto t3 = std::chrono::high_resolution_clock::now(); 
-
-        std::cout << "SIMD:     " << std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count() << " us" << std::endl; 
-        std::cout << "SCALAR:   " << std::chrono::duration_cast<std::chrono::microseconds>( t3 - t2 ).count() << " us" << std::endl; 
-
-#if 0
         if ( heap.size() < 10 )
         {
             heap.emplace( d, p.f, p.p );
@@ -282,5 +253,4 @@ int main(
     {
         std::cout << heap.top().d << " : " << heap.top().p << std::endl; heap.pop();
     }
-#endif
 }
